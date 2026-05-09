@@ -1,0 +1,1 @@
+static void swaplayout(const Arg *arg);
