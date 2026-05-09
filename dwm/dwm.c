@@ -1321,6 +1321,12 @@ grabbuttons(Client *c, int focused)
 		unsigned int i, j;
 		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
+		if (selmon->lt[selmon->sellt] == &layouts[3]) {
+			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
+				BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
+			return;
+		}
+
 		if (!focused)
 			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
 				BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
@@ -1345,22 +1351,33 @@ grabkeys(void)
 		KeySym *syms;
 
 		XUngrabKey(dpy, AnyKey, AnyModifier, root);
+		if (selmon->lt[selmon->sellt] == &layouts[3]) {
+			XGrabKey(dpy, AnyKey,
+				AnyModifier,
+				root, True,
+				GrabModeAsync, GrabModeAsync);
+			return;
+		}
+
 		XDisplayKeycodes(dpy, &start, &end);
 		syms = XGetKeyboardMapping(dpy, start, end - start + 1, &skip);
-		if (!syms)
-			return;
-		for (k = start; k <= end; k++)
-			for (i = 0; i < LENGTH(keys); i++)
+		if (!syms) return;
+
+		for (k = start; k <= end; k++) {
+			for (i = 0; i < LENGTH(keys); i++) {
 				/* skip modifier codes, we do that ourselves */
 				if (
 					keys[i].keysym == syms[(k - start) * skip] &&
 					(!keys[i].layout || keys[i].layout == selmon->lt[selmon->sellt])
-				)
+				) {
 					for (j = 0; j < LENGTH(modifiers); j++)
 						XGrabKey(dpy, k,
 							 keys[i].mod | modifiers[j],
 							 root, True,
 							 GrabModeAsync, GrabModeAsync);
+				}
+			}
+		}
 		XFree(syms);
 	}
 }
