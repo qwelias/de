@@ -30,7 +30,7 @@ static const int ulineall = 0;                  /* 1 to show underline on all ta
 static int tagindicatortype              = INDICATOR_TOP_LEFT_SQUARE;
 static int tiledindicatortype            = INDICATOR_NONE;
 static int floatindicatortype            = INDICATOR_TOP_LEFT_SQUARE;
-static const char *fonts[]               = { "UbuntuMono:size=12:style=Bold", "Symbols Nerd Font:size=14:style=Mono", "Noto Sans Mono CJK SC:size=12", "NotoColorEmoji:pixelsize=12:antialias=true:autohint=true" };
+static const char *fonts[]               = { "UbuntuMono:size=13:style=Bold", "Symbols Nerd Font:size=15:style=Mono", "Noto Sans Mono CJK SC:size=13", "NotoColorEmoji:pixelsize=13:antialias=true:autohint=true" };
 static const char dmenufont[]            = "Ubuntu Mono:size=18";
 
 static char c000000[]                    = "#000000"; // placeholder value
@@ -70,10 +70,10 @@ static char hidselfgcolor[]              = "#227799";
 static char hidnormbgcolor[]             = "#222222";
 static char hidselbgcolor[]              = "#222222";
 
-static char urgfgcolor[]                 = "#bbbbbb";
-static char urgbgcolor[]                 = "#222222";
-static char urgbordercolor[]             = "#ff0000";
-static char urgfloatcolor[]              = "#db8fd9";
+static char urgfgcolor[]                 = "#f62121";
+static char urgbgcolor[]                 = "#dd2323";
+static char urgbordercolor[]             = "#66d9ef";
+static char urgfloatcolor[]              = "#66d9ef";
 
 static char *colors[][ColCount] = {
 	/*                       fg                bg                border                float */
@@ -223,10 +223,10 @@ static const Layout *layouts_swap[] = { &layouts[2], &layouts[0] };
 /* This defines the name of the executable that handles the bar (used for signalling purposes) */
 #define STATUSBAR "dwmblocks"
 
-static const char *up_vol[]   = { "/bin/bash", "-c", "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 10%+ && kill -35 $(pidof dwmblocks)", NULL };
-static const char *down_vol[] = { "/bin/bash", "-c", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%- && kill -35 $(pidof dwmblocks)", NULL };
-static const char *mute_vol[] = { "/bin/bash", "-c", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && kill -35 $(pidof dwmblocks)", NULL };
-static const char *mute_mic[] = { "/bin/bash", "-c", "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle && kill -35 $(pidof dwmblocks)", NULL };
+static const char *up_vol[]   = { "/home/me/script/kb-volume.sh", "+", NULL };
+static const char *down_vol[] = { "/home/me/script/kb-volume.sh", "-", NULL };
+static const char *mute_vol[] = { "/home/me/script/kb-volume.sh", "x", NULL };
+static const char *mute_mic[] = { "/home/me/script/kb-volume.sh", "m", NULL };
 static const char *brighter[] = { "/bin/bash", "-c", "brightnessctl set 10%+ && kill -35 $(pidof dwmblocks)", NULL };
 static const char *dimmer[]   = { "/bin/bash", "-c", "brightnessctl set 10%- && kill -35 $(pidof dwmblocks)", NULL };
 static const char *kbd_up[]   = { "/bin/bash", "-c", "brightnessctl --device=tpacpi::kbd_backlight set 10%+ && kill -35 $(pidof dwmblocks)", NULL };
@@ -246,6 +246,8 @@ static const Key keys[] = {
 	// spawn
 	{ KeyPress,    MODKEY,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
 	{ KeyPress,    MODKEY|ShiftMask,             XK_Return,                  NULL,         spawn,                  {.v = termcmd } },
+	{ KeyPress,    MODKEY,                       XK_l,                       NULL,         spawn,                  SHCMD("slock & xset dpms force off; mpc pause; pauseallmpv") },
+
 	// nav clients
 	{ KeyPress,    MODKEY,                       XK_b,                       NULL,         togglebar,              {0} },
 	{ KeyPress,    MODKEY,                       XK_d,                       NULL,         focusstack,             {.i = +1 } },
