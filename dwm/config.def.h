@@ -246,7 +246,7 @@ static const Key keys[] = {
 	// spawn
 	{ KeyPress,    MODKEY,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
 	{ KeyPress,    MODKEY|ShiftMask,             XK_Return,                  NULL,         spawn,                  {.v = termcmd } },
-	{ KeyPress,    MODKEY,                       XK_l,                       NULL,         spawn,                  SHCMD("slock & xset dpms force off; mpc pause; pauseallmpv") },
+	{ KeyPress,    MODKEY,                       XK_l,                       NULL,         spawn,                  SHCMD("slock & xset dpms force off") },
 
 	// nav clients
 	{ KeyPress,    MODKEY,                       XK_b,                       NULL,         togglebar,              {0} },
