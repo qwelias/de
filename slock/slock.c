@@ -210,8 +210,11 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 				len = 0;
 				break;
 			case XK_BackSpace:
-				if (len)
+				if (len) {
 					passwd[--len] = '\0';
+					for (screen = 0; screen < nscreens; screen++)
+						draw_key_feedback(dpy, locks, screen);
+				}
 				break;
 			case XK_Caps_Lock:
 				caps = !caps;
@@ -226,9 +229,8 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 					explicit_bzero(&passwd, sizeof(passwd));
 					len = 0;
 				}
-				if (blocks_enabled)
-					for (screen = 0; screen < nscreens; screen++)
-						draw_key_feedback(dpy, locks, screen);
+				for (screen = 0; screen < nscreens; screen++)
+					draw_key_feedback(dpy, locks, screen);
 				break;
 			}
 			color = len ? (caps ? CAPS : INPUT) : (failure || failonclear ? FAILED : INIT);
@@ -238,6 +240,7 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 					                     locks[screen]->win,
 					                     locks[screen]->colors[color]);
 					XClearWindow(dpy, locks[screen]->win);
+					if (len) draw_key_feedback(dpy, locks, screen);
 				}
 				oldc = color;
 			}

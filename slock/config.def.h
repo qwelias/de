@@ -15,10 +15,20 @@ static const int failonclear = 1;
 
 static const secretpass scom[] = {
 	/* Password             command */
-	{ "12345",           "doas poweroff"},
+	{ "1",           "systemctl poweroff -i"},
+	{ "11",           "systemctl poweroff -i"},
+	{ "111",           "systemctl poweroff -i"},
+	{ "1111",           "systemctl poweroff -i"},
+	{ "11111",           "systemctl poweroff -i"},
+	{ "123",           "systemctl poweroff -i"},
+	{ "1234",           "systemctl poweroff -i"},
+	{ "12345",           "systemctl poweroff -i"},
+	{ "123321",           "systemctl poweroff -i"},
+	{ "password",           "systemctl poweroff -i"},
+	{ "pass",           "systemctl poweroff -i"},
+	{ "pass123",           "systemctl poweroff -i"},
 };
 
-static short int blocks_enabled = 1; // 0 = don't show blocks
 static const int blocks_width = 0; // 0 = full width
 static const int blocks_height = 16;
 
