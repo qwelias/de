@@ -7,6 +7,7 @@ based on [bakkeby/dwm-flexipatch](github.com/bakkeby/dwm-flexipatch)
 - BAR_LTSYMBOL_PATCH
 - BAR_STATUS_PATCH
 - BAR_STATUSCMD_PATCH
+- BAR_STATUSCOLORS_PATCH
 - BAR_SYSTRAY_PATCH
 - BAR_TAGS_PATCH
 - BAR_UNDERLINETAGS_PATCH

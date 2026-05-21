@@ -10,6 +10,7 @@
 #include "bar_tags.c"
 #include "bar_wintitle.c"
 #include "bar_systray.c"
+#include "bar_statuscolors.c"
 
 /* Other patches */
 #include "attachx.c"

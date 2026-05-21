@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <X11/X.h>
 #include <X11/XF86keysym.h>
 #include <X11/Xutil.h>
 
@@ -30,7 +31,7 @@ static const int ulineall = 0;                  /* 1 to show underline on all ta
 static int tagindicatortype              = INDICATOR_TOP_LEFT_SQUARE;
 static int tiledindicatortype            = INDICATOR_NONE;
 static int floatindicatortype            = INDICATOR_TOP_LEFT_SQUARE;
-static const char *fonts[]               = { "UbuntuMono:size=13:style=Bold", "Symbols Nerd Font:size=15:style=Mono", "Noto Sans Mono CJK SC:size=13", "NotoColorEmoji:pixelsize=13:antialias=true:autohint=true" };
+static const char *fonts[]               = { "UbuntuMono:size=13:style=Bold", "Noto Sans:size=13", "Symbols Nerd Font:size=15:style=Mono", "Noto Sans Mono CJK SC:size=13", "NotoColorEmoji:pixelsize=13:antialias=true:autohint=true" };
 static const char dmenufont[]            = "Ubuntu Mono:size=18";
 
 static char c000000[]                    = "#000000"; // placeholder value
@@ -227,10 +228,13 @@ static const char *up_vol[]   = { "/home/me/script/kb-volume.sh", "+", NULL };
 static const char *down_vol[] = { "/home/me/script/kb-volume.sh", "-", NULL };
 static const char *mute_vol[] = { "/home/me/script/kb-volume.sh", "x", NULL };
 static const char *mute_mic[] = { "/home/me/script/kb-volume.sh", "m", NULL };
-static const char *brighter[] = { "/bin/bash", "-c", "brightnessctl set 10%+ && kill -35 $(pidof dwmblocks)", NULL };
-static const char *dimmer[]   = { "/bin/bash", "-c", "brightnessctl set 10%- && kill -35 $(pidof dwmblocks)", NULL };
-static const char *kbd_up[]   = { "/bin/bash", "-c", "brightnessctl --device=tpacpi::kbd_backlight set 10%+ && kill -35 $(pidof dwmblocks)", NULL };
-static const char *kbd_down[] = { "/bin/bash", "-c", "brightnessctl --device=tpacpi::kbd_backlight set 10%- && kill -35 $(pidof dwmblocks)", NULL };
+static const char *brighter[] = { "brightnessctl", "set", "10%+", NULL };
+static const char *dimmer[]   = { "brightnessctl", "set", "10%-", NULL };
+static const char *kbd_up[]   = { "brightnessctl", "--device=tpacpi::kbd_backlight", "set", "10%+", NULL };
+static const char *kbd_down[] = { "brightnessctl", "--device=tpacpi::kbd_backlight", "set", "10%-", NULL };
+static const char *lock[]     = { "xset", "dpms", "force", "off", NULL };
+static const char *maimss[]   = { "maimpick.sh", "ss", NULL };
+static const char *maimocr[]  = { "maimpick.sh", "ocr", NULL };
 
 static const Key keys[] = {
 	/* event,      modifier                      key                         layout        function                argument */
@@ -245,8 +249,10 @@ static const Key keys[] = {
 	{ KeyPress,    0,                            XF86XK_KbdBrightnessDown,   NULL,         spawn,                  {.v = kbd_down } },
 	// spawn
 	{ KeyPress,    MODKEY,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
-	{ KeyPress,    MODKEY|ShiftMask,             XK_Return,                  NULL,         spawn,                  {.v = termcmd } },
-	{ KeyPress,    MODKEY,                       XK_l,                       NULL,         spawn,                  SHCMD("slock & xset dpms force off") },
+	{ KeyPress,    MODKEY,                       XK_t,                       NULL,         spawn,                  {.v = termcmd } },
+	{ KeyPress,    MODKEY,                       XK_l,                       NULL,         spawn,                  {.v = lock } },
+	{ KeyPress,    0,                            XK_Print,                   NULL,         spawn,                  {.v = maimss } },
+	{ KeyPress,    ShiftMask,                    XK_Print,                   NULL,         spawn,                  {.v = maimocr } },
 
 	// nav clients
 	{ KeyPress,    MODKEY,                       XK_b,                       NULL,         togglebar,              {0} },
