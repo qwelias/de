@@ -1,13 +1,13 @@
 int
 width_statuscolors(Bar *bar, BarArg *a)
 {
-	return textw_wosc(rawstext);
+	return textw_wosc(stext);
 }
 
 int
 draw_statuscolors(Bar *bar, BarArg *a)
 {
-	return draw_wosc(bar, a, rawstext);
+	return draw_wosc(bar, a, stext);
 }
 
 int

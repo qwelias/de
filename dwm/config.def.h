@@ -31,7 +31,7 @@ static const int ulineall = 0;                  /* 1 to show underline on all ta
 static int tagindicatortype              = INDICATOR_TOP_LEFT_SQUARE;
 static int tiledindicatortype            = INDICATOR_NONE;
 static int floatindicatortype            = INDICATOR_TOP_LEFT_SQUARE;
-static const char *fonts[]               = { "UbuntuMono:size=13:style=Bold", "Noto Sans:size=13", "Symbols Nerd Font:size=15:style=Mono", "Noto Sans Mono CJK SC:size=13", "NotoColorEmoji:pixelsize=13:antialias=true:autohint=true" };
+static const char *fonts[]               = { "Ubuntu Mono:size=13:style=Bold", "Noto Sans Mono:size=13", "Symbols Nerd Font:size=15:style=Mono", "Noto Sans Mono CJK SC:size=13", "Noto Color Emoji:pixelsize=13:antialias=true:autohint=true" };
 static const char dmenufont[]            = "Ubuntu Mono:size=18";
 
 static char c000000[]                    = "#000000"; // placeholder value
@@ -66,13 +66,13 @@ static char tagsselbgcolor[]             = "#3e3f37";
 static char tagsselbordercolor[]         = "#272822";
 static char tagsselfloatcolor[]          = "#ae81ff";
 
-static char hidnormfgcolor[]             = "#005577";
-static char hidselfgcolor[]              = "#227799";
+static char hidnormfgcolor[]             = "#f8f8f2";
+static char hidselfgcolor[]              = "#f8f8f2";
 static char hidnormbgcolor[]             = "#222222";
 static char hidselbgcolor[]              = "#222222";
 
-static char urgfgcolor[]                 = "#f62121";
-static char urgbgcolor[]                 = "#dd2323";
+static char urgfgcolor[]                 = "#f8f8f2";
+static char urgbgcolor[]                 = "#f92672";
 static char urgbordercolor[]             = "#66d9ef";
 static char urgfloatcolor[]              = "#66d9ef";
 
@@ -173,7 +173,7 @@ static const BarRule barrules[] = {
 	/* monitor   bar    alignment         widthfunc                 drawfunc                clickfunc                hoverfunc                name */
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_ltsymbol,           draw_ltsymbol,          click_ltsymbol,          NULL,                    "layout" },
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_tags,               draw_tags,              click_tags,              hover_tags,              "tags" },
-	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_status,             draw_status,            click_statuscmd,         NULL,                    "status" },
+	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_statuscolors,       draw_statuscolors,      click_statuscmd,         NULL,                    "statuscolors" },
 	{  0,        0,     BAR_ALIGN_RIGHT,  width_systray,            draw_systray,           click_systray,           NULL,                    "systray" },
 	{ -1,        0,     BAR_ALIGN_NONE,   width_wintitle,           draw_wintitle,          click_wintitle,          NULL,                    "wintitle" },
 };
