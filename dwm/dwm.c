@@ -370,7 +370,8 @@ static const char broken[] = "broken";
 static char stext[512];
 static char rawstext[512];
 
-static int pressed = 0;
+static int keypressed;
+static int btnpressed;
 
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
@@ -621,6 +622,7 @@ buttonpress(XEvent *e)
 		click = ClkClientWin;
 	}
 
+	btnpressed = ev->button;
 	for (i = 0; i < LENGTH(buttons); i++) {
 		if (
 			click == buttons[i].click &&
@@ -1399,7 +1401,8 @@ keypress(XEvent *e)
 
 	ev = &e->xkey;
 	keysym = XGetKeyboardMapping(dpy, (KeyCode)ev->keycode, 1, &keysyms_return);
-	pressed = *keysym;
+	keypressed = *keysym;
+	btnpressed = 0;
 	for (i = 0; i < LENGTH(keys); i++) {
 		if (*keysym == keys[i].keysym
 				&& keys[i].ev == KeyPress
@@ -1423,16 +1426,19 @@ keyrelease(XEvent *e)
 	ev = &e->xkey;
 	keysym = XGetKeyboardMapping(dpy, (KeyCode)ev->keycode, 1, &keysyms_return);
 	for (i = 0; i < LENGTH(keys); i++) {
-		if (*keysym == keys[i].keysym
-				&& keys[i].ev == KeyRelease
-				&& keys[i].func) {
-					if (pressed && pressed != keys[i].keysym) {
-						if (pressed == XK_a || pressed == XK_d) pop(selmon->sel);
-						pressed = 0;
-					} else {
-						keys[i].func(&(keys[i].arg));
-					}
-				}
+		if (
+			*keysym == keys[i].keysym
+			&& keys[i].ev == KeyRelease
+			&& keys[i].func
+			&& !btnpressed
+		) {
+			if (keypressed && keypressed != keys[i].keysym) {
+				if (keypressed == XK_a || keypressed == XK_d) pop(selmon->sel);
+				keypressed = 0;
+			} else {
+				keys[i].func(&(keys[i].arg));
+			}
+		}
 	}
 	XFree(keysym);
 }
