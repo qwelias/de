@@ -4,11 +4,9 @@
 
 typedef struct AlrmSet {
 	const size_t interval;
-	const void (*run)();
+	void (*run)(void);
 	const char *name;
 } AlrmSet;
-
-extern const AlrmSet alrms[];
 
 static void sigalrm(int unused);
 #endif

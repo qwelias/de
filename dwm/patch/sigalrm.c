@@ -6,19 +6,20 @@
 static size_t alrmcounter;
 
 void
-sigalrm(int unused)
+sigalrm(int drycalc)
 {
 	alrmcounter++;
-	fprintf(stderr, "sigalrm: %zu\n", alrmcounter);
 
+	int redraw = 0;
 	const AlrmSet *as;
 	for (size_t i = 0; i < LENGTH(alrms); i++) {
-		
-		if (alrmcounter % alrms[i]->interval == 0) {
-			fprintf(stderr, "sigalrm: %s\n", alrms[i]->name);
-			alrms[i]->run();
+		as = &alrms[i];
+		if (drycalc || alrmcounter % as->interval == 0) {
+			as->run();
+			redraw = 1;
 		}
 	}
+	if (redraw && !drycalc) drawbars();
 
 	alarm(1);
 }
