@@ -935,7 +935,7 @@ createmon(void)
 void
 destroynotify(XEvent *e)
 {
-	fprintf(stderr, "destroynotify\n");
+	// fprintf(stderr, "destroynotify\n");
 	Client *c;
 	XDestroyWindowEvent *ev = &e->xdestroywindow;
 
@@ -1149,7 +1149,7 @@ enternotify(XEvent *e)
 void
 expose(XEvent *e)
 {
-	fprintf(stderr, "expose\n");
+	// fprintf(stderr, "expose\n");
 	Monitor *m;
 	XExposeEvent *ev = &e->xexpose;
 
@@ -1161,7 +1161,7 @@ expose(XEvent *e)
 void
 focus(Client *c)
 {
-	fprintf(stderr, "focus\n");
+	// fprintf(stderr, "focus\n");
 	if (!c || !ISVISIBLE(c))
 		for (c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
 	if (selmon->sel && selmon->sel != c)
@@ -1558,7 +1558,7 @@ mappingnotify(XEvent *e)
 void
 maprequest(XEvent *e)
 {
-	fprintf(stderr, "maprequest\n");
+	// fprintf(stderr, "maprequest\n");
 	static XWindowAttributes wa;
 	XMapRequestEvent *ev = &e->xmaprequest;
 
@@ -1872,7 +1872,7 @@ resizemouse(const Arg *arg)
 void
 restack(Monitor *m)
 {
-	fprintf(stderr, "restack\n");
+	// fprintf(stderr, "restack\n");
 	Client *c, *f = NULL;
 	XEvent ev;
 	XWindowChanges wc;
@@ -2058,7 +2058,7 @@ setfullscreen(Client *c, int fullscreen)
 void
 setlayout(const Arg *arg)
 {
-	fprintf(stderr, "setlayout\n");
+	// fprintf(stderr, "setlayout\n");
 	if (arg && arg->v && arg->v != selmon->lt[selmon->sellt]) {
 		selmon->sellt ^= 1;
 		selmon->lt[selmon->sellt] = (Layout *)arg->v;
@@ -2111,6 +2111,7 @@ setup(void)
 	signal(SIGTERM, sigterm);
 	signal(SIGALRM, sigalrm);
 	alarm(1);
+	sigalrm(1);
 
 	/* the one line of bloat that would have saved a lot of time for a lot of people */
 	putenv("_JAVA_AWT_WM_NONREPARENTING=1");
@@ -2387,7 +2388,7 @@ unmanage(Client *c, int destroyed)
 void
 unmapnotify(XEvent *e)
 {
-	fprintf(stderr, "unmapnotify\n");
+	// fprintf(stderr, "unmapnotify\n");
 	Client *c;
 	XUnmapEvent *ev = &e->xunmap;
 
@@ -2564,7 +2565,7 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
-	fprintf(stderr, "updatestatus\n");
+	// fprintf(stderr, "updatestatus\n");
 	Monitor *m;
 	if (!gettextprop(root, XA_WM_NAME, rawstext, sizeof(rawstext)))
 		strcpy(stext, "dwm-"VERSION);

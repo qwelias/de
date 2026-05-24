@@ -10,6 +10,8 @@
 #include "bar_wintitle.h"
 #include "bar_systray.h"
 #include "bar_statuscolors.h"
+#include "bar_system_stats.h"
+#include "bar_time.h"
 
 /* Other patches */
 #include "attachx.h"
