@@ -1,6 +1,5 @@
 /* Bar functionality */
 #include "bar_indicators.h"
-#include "bar_tagicons.h"
 #include "bar.h"
 
 #include "bar_dwmblocks.h"
@@ -26,6 +25,7 @@
 #include "shifttag.h"
 #include "shiftview.h"
 #include "swaplayout.h"
+#include "sigalrm.h"
 /* Layouts */
 #include "layout_gapplessgrid.h"
 #include "layout_monocle.h"
