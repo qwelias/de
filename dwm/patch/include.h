@@ -25,6 +25,7 @@
 #include "shifttag.h"
 #include "shiftview.h"
 #include "swaplayout.h"
+#include "sigalrm.h"
 /* Layouts */
 #include "layout_gapplessgrid.h"
 #include "layout_monocle.h"

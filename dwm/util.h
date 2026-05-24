@@ -1,5 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
+#ifndef UTIL_H
+#define UTIL_H
 #ifndef MAX
 #define MAX(A, B)               ((A) > (B) ? (A) : (B))
 #endif
@@ -17,4 +19,4 @@
 
 void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
-
+#endif
