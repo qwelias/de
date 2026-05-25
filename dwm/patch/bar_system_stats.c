@@ -28,10 +28,10 @@ int click_system_stats(Bar *bar, Arg *arg, BarArg *a)
     return -1;
 }
 
-int read_cpu_stat(CpuStat *out) {
+static int read_cpu_stat(CpuStat *out) {
     FILE *f = fopen("/proc/stat", "r");
     if (!f) {
-        DEBUG("cannot fopen(/proc/stat)");
+        fprintf(stderr, "cannot fopen(/proc/stat)");
         return -1;
     }
 
@@ -60,7 +60,7 @@ int read_cpu_stat(CpuStat *out) {
     return 0;
 }
 
-int calculate_cpu_usage_percent(
+static int calculate_cpu_usage_percent(
     const CpuStat *prev,
     const CpuStat *current
 ) {
@@ -79,11 +79,11 @@ int calculate_cpu_usage_percent(
     return CLAMP(0, (int)ceil(usage), 99);
 }
 
-int read_mem_usage_percent(void) {
+static int read_mem_usage_percent(void) {
     FILE *f = fopen("/proc/meminfo", "r");
 
     if (!f) {
-        DEBUG("cannot fopen(/proc/meminfo)");
+        fprintf(stderr, "cannot fopen(/proc/meminfo)");
         return -1;
     }
 
@@ -114,7 +114,7 @@ int read_mem_usage_percent(void) {
     fclose(f);
 
     if (mem_total == 0) {
-        DEBUG("MemTotal not found\n");
+        fprintf(stderr, "MemTotal not found\n");
         return -1;
     }
 
@@ -125,10 +125,10 @@ int read_mem_usage_percent(void) {
 
 void system_stats_alrm(void) {
     read_cpu_stat(&curcpustat);
-    int cpu = calculate_cpu_usage_percent(&precpustat, &curcpustat);
+    const int cpu = calculate_cpu_usage_percent(&precpustat, &curcpustat);
     precpustat = curcpustat;
     
-    int mem = read_mem_usage_percent();
+    const int mem = read_mem_usage_percent();
     color = 1;
     if (mem > 90) color = 9;
     else if (mem > 85) color = 2;
