@@ -2111,7 +2111,7 @@ setup(void)
 	signal(SIGTERM, sigterm);
 	signal(SIGALRM, sigalrm);
 	alarm(1);
-	sigalrm(1);
+	sigalrm(0);
 
 	/* the one line of bloat that would have saved a lot of time for a lot of people */
 	putenv("_JAVA_AWT_WM_NONREPARENTING=1");
