@@ -1,12 +1,11 @@
 #include "bar_time.h"
-
 #include <time.h>
 
-static char time_txt[21] = "  WEK DD MON HH:MM";
+static char time_txt[21] = "  WEK DD MON HH:MM  ";
 
 int width_time(Bar *bar, BarArg *a)
 {
-    return TEXTW(time_txt);
+    return TEXTW(time_txt) - lrpad;
 }
 
 int draw_time(Bar *bar, BarArg *a)
@@ -24,5 +23,5 @@ void update_time(void) {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
 
-    strftime(time_txt, sizeof(time_txt), "  %a %d %b %H:%M", tm);
+    strftime(time_txt, sizeof(time_txt), "  %a %d %b %H:%M  ", tm);
 }

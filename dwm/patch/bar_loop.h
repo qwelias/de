@@ -1,5 +1,5 @@
-#ifndef SIGALRM_H
-#define SIGALRM_H
+#ifndef BAR_LOOP_H
+#define BAR_LOOP_H
 #include <stddef.h>
 
 typedef struct BarUpdateSet {

@@ -13,6 +13,7 @@
 #include "bar_loop.c"
 #include "bar_system_stats.c"
 #include "bar_time.c"
+#include "bar_bat.c"
 
 /* Other patches */
 #include "attachx.c"

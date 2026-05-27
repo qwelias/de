@@ -9,17 +9,17 @@
 
 static CpuStat precpustat = {0};
 static CpuStat curcpustat = {0};
-static char system_stats_txt[12] = "  00 ~ 00";
-static unsigned int color = 1;
+static char system_stats_txt[12] = "  00 ~ 00  ";
+static unsigned int system_stats_color = 1;
 
 int width_system_stats(Bar *bar, BarArg *a)
 {
-    return TEXTW(system_stats_txt);
+    return TEXTW(system_stats_txt) - lrpad;
 }
 
 int draw_system_stats(Bar *bar, BarArg *a)
 {
-    drw_setscheme(drw, scheme[(unsigned int)(color-1)]);
+    drw_setscheme(drw, scheme[(unsigned int)(system_stats_color-1)]);
     return drw_text(drw, a->x, a->y, a->w, a->h, 0, system_stats_txt, 0, 1);
 }
 
@@ -32,7 +32,7 @@ static int read_cpu_stat(CpuStat *out) {
     FILE *f = fopen("/proc/stat", "r");
     if (!f) {
         fprintf(stderr, "cannot fopen(/proc/stat)");
-        return -1;
+        return 0;
     }
 
     uint64_t v[10] = {0};
@@ -84,7 +84,7 @@ static int read_mem_usage_percent(void) {
 
     if (!f) {
         fprintf(stderr, "cannot fopen(/proc/meminfo)");
-        return -1;
+        return 0;
     }
 
     char key[64];
@@ -115,7 +115,7 @@ static int read_mem_usage_percent(void) {
 
     if (mem_total == 0) {
         fprintf(stderr, "MemTotal not found\n");
-        return -1;
+        return 0;
     }
 
     double mem_used = 100.0 * (mem_total - mem_avail) / mem_total;
@@ -129,12 +129,12 @@ void system_stats_update(void) {
     precpustat = curcpustat;
     
     const int mem = read_mem_usage_percent();
-    color = 1;
-    if (mem > 90) color = 9;
-    else if (mem > 85) color = 2;
+    system_stats_color = 1;
+    if (mem > 90) system_stats_color = 9;
+    else if (mem > 85) system_stats_color = 2;
 
     snprintf(system_stats_txt, sizeof(system_stats_txt),
-        "  %02d ~ %02d",
+        "  %02d ~ %02d  ",
         cpu, mem
     );
 }
