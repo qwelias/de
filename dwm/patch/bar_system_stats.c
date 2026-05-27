@@ -123,7 +123,7 @@ static int read_mem_usage_percent(void) {
     return CLAMP(0, (int)ceil(mem_used), 99);
 }
 
-void system_stats_alrm(void) {
+void system_stats_update(void) {
     read_cpu_stat(&curcpustat);
     const int cpu = calculate_cpu_usage_percent(&precpustat, &curcpustat);
     precpustat = curcpustat;

@@ -11,6 +11,6 @@ typedef struct CpuStat {
 static int width_system_stats(Bar *bar, BarArg *a);
 static int draw_system_stats(Bar *bar, BarArg *a);
 static int click_system_stats(Bar *bar, Arg *arg, BarArg *a);
-static void system_stats_alrm(void);
+static void system_stats_update(void);
 
 #endif

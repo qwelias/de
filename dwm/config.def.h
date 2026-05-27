@@ -1,4 +1,6 @@
 /* See LICENSE file for copyright and license details. */
+#include "patch/bar_loop.h"
+#include "patch/bar_system_stats.h"
 #include <X11/X.h>
 #include <X11/XF86keysym.h>
 #include <X11/Xutil.h>
@@ -142,8 +144,15 @@ static const BarRule barrules[] = {
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_ltsymbol,           draw_ltsymbol,          click_ltsymbol,          NULL,                    "layout" },
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_tags,               draw_tags,              click_tags,              hover_tags,              "tags" },
 	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_statuscolors,       draw_statuscolors,      click_statuscmd,         NULL,                    "statuscolors" },
+	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_system_stats,       draw_system_stats,      click_system_stats,      NULL,                    "system_stats" },
+	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_time,               draw_time,              click_time,              NULL,                    "time" },
 	{  0,        0,     BAR_ALIGN_RIGHT,  width_systray,            draw_systray,           click_systray,           NULL,                    "systray" },
 	{ -1,        0,     BAR_ALIGN_NONE,   width_wintitle,           draw_wintitle,          click_wintitle,          NULL,                    "wintitle" },
+};
+
+static const BarUpdateSet barupdates[] = {
+	{ 3, system_stats_update, "system_stats_update" },
+	{ 3, update_time, "update_time" },
 };
 
 /* layout(s) */

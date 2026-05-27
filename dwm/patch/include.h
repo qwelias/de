@@ -10,6 +10,7 @@
 #include "bar_wintitle.h"
 #include "bar_systray.h"
 #include "bar_statuscolors.h"
+#include "bar_loop.h"
 #include "bar_system_stats.h"
 #include "bar_time.h"
 
@@ -27,7 +28,6 @@
 #include "shifttag.h"
 #include "shiftview.h"
 #include "swaplayout.h"
-#include "sigalrm.h"
 /* Layouts */
 #include "layout_gapplessgrid.h"
 #include "layout_monocle.h"

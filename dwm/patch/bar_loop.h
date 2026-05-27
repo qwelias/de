@@ -2,11 +2,11 @@
 #define SIGALRM_H
 #include <stddef.h>
 
-typedef struct AlrmSet {
+typedef struct BarUpdateSet {
 	const size_t interval;
 	void (*run)(void);
 	const char *name;
-} AlrmSet;
+} BarUpdateSet;
 
-static void sigalrm(int unused);
+static void* init_bar_loop(void* dpy);
 #endif

@@ -10,6 +10,7 @@
 #include "bar_wintitle.c"
 #include "bar_systray.c"
 #include "bar_statuscolors.c"
+#include "bar_loop.c"
 #include "bar_system_stats.c"
 #include "bar_time.c"
 
@@ -27,7 +28,6 @@
 #include "dragmfact.c"
 #include "seamless_restart.c"
 #include "swaplayout.c"
-#include "sigalrm.c"
 /* Layouts */
 #include "layout_facts.c"
 #include "layout_gapplessgrid.c"

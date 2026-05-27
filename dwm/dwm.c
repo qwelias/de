@@ -38,6 +38,7 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 #include <X11/Xft/Xft.h>
+#include <pthread.h>
 
 #include "drw.h"
 #include "util.h"
@@ -105,6 +106,7 @@ enum {
 	WMDelete,
 	WMState,
 	WMTakeFocus,
+	WMStatusRedraw,
 	WMLast
 }; /* default atoms */
 
@@ -367,6 +369,7 @@ static void zoom(const Arg *arg);
 static const char broken[] = "broken";
 static char stext[512];
 static char rawstext[512];
+static pthread_t barloopth;
 
 static int keypressed;
 static int btnpressed;
@@ -718,6 +721,11 @@ clientmessage(XEvent *e)
 	XSetWindowAttributes swa;
 	XClientMessageEvent *cme = &e->xclient;
 	Client *c = wintoclient(cme->window);
+
+	if (cme->message_type == wmatom[WMStatusRedraw]) {
+		drawbars();
+		return;
+	}
 
 	if (showsystray && systray && cme->window == systray->win && cme->message_type == netatom[NetSystemTrayOP]) {
 		/* add systray icons */
@@ -2109,9 +2117,6 @@ setup(void)
 
 	signal(SIGHUP, sighup);
 	signal(SIGTERM, sigterm);
-	signal(SIGALRM, sigalrm);
-	alarm(1);
-	sigalrm(0);
 
 	/* the one line of bloat that would have saved a lot of time for a lot of people */
 	putenv("_JAVA_AWT_WM_NONREPARENTING=1");
@@ -2133,6 +2138,7 @@ setup(void)
 	wmatom[WMDelete] = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 	wmatom[WMState] = XInternAtom(dpy, "WM_STATE", False);
 	wmatom[WMTakeFocus] = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
+	wmatom[WMStatusRedraw] = XInternAtom(dpy, "WM_STATUS_REDRAW", False);
 	clientatom[ClientFields] = XInternAtom(dpy, "_DWM_CLIENT_FIELDS", False);
 	clientatom[ClientTags] = XInternAtom(dpy, "_DWM_CLIENT_TAGS", False);
 	netatom[NetActiveWindow] = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
@@ -2190,6 +2196,11 @@ setup(void)
 		|LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask|CWCursor, &wa);
 	XSelectInput(dpy, root, wa.event_mask);
+
+	if (pthread_create(&barloopth, NULL, init_bar_loop, NULL) != 0) {
+		die("dwm: Could not create barloopth\n");
+	}
+	pthread_detach(barloopth);
 
 	grabkeys();
 	focus(NULL);
