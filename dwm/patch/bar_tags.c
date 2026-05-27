@@ -3,8 +3,8 @@ width_tags(Bar *bar, BarArg *a)
 {
 	int w, i;
 
-	for (w = 0, i = 0; i < NUMTAGS; i++) {
-		w += TEXTW(tagicon(bar->mon, i));
+	for (w = 0, i = 0; i < LENGTH(tags); i++) {
+		w += TEXTW(tags[i]);
 	}
 	return w;
 }
@@ -15,7 +15,7 @@ draw_tags(Bar *bar, BarArg *a)
 	int invert;
 	int w, x = a->x;
 	unsigned int i, occ = 0, urg = 0;
-	char *icon;
+	const char *icon;
 	Client *c;
 	Monitor *m = bar->mon;
 
@@ -24,9 +24,8 @@ draw_tags(Bar *bar, BarArg *a)
 		if (c->isurgent)
 			urg |= c->tags;
 	}
-	for (i = 0; i < NUMTAGS; i++) {
-
-		icon = tagicon(bar->mon, i);
+	for (i = 0; i < LENGTH(tags); i++) {
+		icon = tags[i];
 		invert = 0;
 		w = TEXTW(icon);
 		drw_setscheme(drw, scheme[
@@ -52,9 +51,9 @@ click_tags(Bar *bar, Arg *arg, BarArg *a)
 	int i = 0, x = 0;
 
 	do {
-		x += TEXTW(tagicon(bar->mon, i));
-	} while (a->x >= x && ++i < NUMTAGS);
-	if (i < NUMTAGS) {
+		x += TEXTW(tags[i]);
+	} while (a->x >= x && ++i < LENGTH(tags));
+	if (i < LENGTH(tags)) {
 		arg->ui = 1 << i;
 	}
 	return ClkTagBar;

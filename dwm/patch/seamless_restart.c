@@ -133,7 +133,7 @@ getmonitortags(Monitor *m)
 	unsigned long dl, nitems;
 	unsigned char *p = NULL;
 	char atom[22] = {0};
-	Atom da, monitor_tags = None, tags;
+	Atom da, monitor_tags = None, tagsat;
 
 	sprintf(atom, "_DWM_MONITOR_TAGS_%u", m->num);
 	monitor_tags = XInternAtom(dpy, atom, False);
@@ -144,8 +144,8 @@ getmonitortags(Monitor *m)
 	}
 
 	if (nitems) {
-		tags = *(Atom *)p;
-		m->tagset[m->seltags] = tags & TAGMASK;
+		tagsat = *(Atom *)p;
+		m->tagset[m->seltags] = tagsat & TAGMASK;
 	}
 
 	XFree(p);
@@ -209,11 +209,11 @@ setclienttags(Client *c)
 int
 getclienttags(Client *c)
 {
-	Atom tags = getatomprop(c, clientatom[ClientTags], AnyPropertyType);
-	if (tags == None)
+	Atom tagsat = getatomprop(c, clientatom[ClientTags], AnyPropertyType);
+	if (tagsat == None)
 		return 0;
 
-	c->tags = tags & TAGMASK;
+	c->tags = tagsat & TAGMASK;
 	return 1;
 }
 

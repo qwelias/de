@@ -65,13 +65,13 @@ drawindicator(Monitor *m, Client *c, unsigned int occ, int x, int y, int w, int 
 	case INDICATOR_RIGHT_TAGS:
 		if (!c)
 			break;
-		for (i = 0; i < NUMTAGS; i++) {
+		for (i = 0; i < LENGTH(tags); i++) {
 			drw_rect(drw,
-				( x + w - 2 - ((NUMTAGS / TAGSROWS) * TAGSPX)
-					- (i % (NUMTAGS/TAGSROWS)) + ((i % (NUMTAGS / TAGSROWS)) * TAGSPX)
+				( x + w - 2 - ((LENGTH(tags) / TAGSROWS) * TAGSPX)
+					- (i % (LENGTH(tags)/TAGSROWS)) + ((i % (LENGTH(tags) / TAGSROWS)) * TAGSPX)
 				),
-				( y + 2 + ((i / (NUMTAGS/TAGSROWS)) * TAGSPX)
-					- ((i / (NUMTAGS/TAGSROWS)))
+				( y + 2 + ((i / (LENGTH(tags)/TAGSROWS)) * TAGSPX)
+					- ((i / (LENGTH(tags)/TAGSROWS)))
 				),
 				TAGSPX, TAGSPX, (c->tags >> i) & 1, 0
 			);

@@ -15,9 +15,9 @@ shift(const Arg *arg, int clients)
 
 	do {
 		if (arg->i > 0) // left circular shift
-			shifted.ui = (shifted.ui << arg->i) | (shifted.ui >> (NUMTAGS - arg->i));
+			shifted.ui = (shifted.ui << arg->i) | (shifted.ui >> (LENGTH(tags) - arg->i));
 		else // right circular shift
-			shifted.ui = (shifted.ui >> -arg->i) | (shifted.ui << (NUMTAGS + arg->i));
+			shifted.ui = (shifted.ui >> -arg->i) | (shifted.ui << (LENGTH(tags) + arg->i));
 	} while (tagmask && !(shifted.ui & tagmask));
 
 	return shifted;

@@ -49,8 +49,6 @@
 #define Button7                 7
 #define Button8                 8
 #define Button9                 9
-#define NUMTAGS                 5
-#define NUMVIEWHIST             NUMTAGS
 #define BARRULES                20
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
@@ -61,7 +59,7 @@
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
 #define WTYPE                   "_NET_WM_WINDOW_TYPE_"
-#define TAGMASK                 ((1 << NUMTAGS) - 1)
+#define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define TEXTWM(X)               (drw_fontset_getwidth(drw, (X), True) + lrpad)
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X), False) + lrpad)
 #define HIDDEN(C)               ((getstate(C->win) == IconicState))
@@ -417,9 +415,6 @@ static Window root, wmcheckwin;
 #include "config.h"
 
 #include "patch/include.c"
-
-/* compile-time check if all tags fit into an unsigned int bit array. */
-struct NumTags { char limitexceeded[NUMTAGS > 31 ? -1 : 1]; };
 
 /* function implementations */
 void
@@ -940,6 +935,7 @@ createmon(void)
 void
 destroynotify(XEvent *e)
 {
+	fprintf(stderr, "destroynotify\n");
 	Client *c;
 	XDestroyWindowEvent *ev = &e->xdestroywindow;
 
@@ -1153,6 +1149,7 @@ enternotify(XEvent *e)
 void
 expose(XEvent *e)
 {
+	fprintf(stderr, "expose\n");
 	Monitor *m;
 	XExposeEvent *ev = &e->xexpose;
 
@@ -1164,6 +1161,7 @@ expose(XEvent *e)
 void
 focus(Client *c)
 {
+	fprintf(stderr, "focus\n");
 	if (!c || !ISVISIBLE(c))
 		for (c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
 	if (selmon->sel && selmon->sel != c)
@@ -1560,6 +1558,7 @@ mappingnotify(XEvent *e)
 void
 maprequest(XEvent *e)
 {
+	fprintf(stderr, "maprequest\n");
 	static XWindowAttributes wa;
 	XMapRequestEvent *ev = &e->xmaprequest;
 
@@ -1873,6 +1872,7 @@ resizemouse(const Arg *arg)
 void
 restack(Monitor *m)
 {
+	fprintf(stderr, "restack\n");
 	Client *c, *f = NULL;
 	XEvent ev;
 	XWindowChanges wc;
@@ -2058,6 +2058,7 @@ setfullscreen(Client *c, int fullscreen)
 void
 setlayout(const Arg *arg)
 {
+	fprintf(stderr, "setlayout\n");
 	if (arg && arg->v && arg->v != selmon->lt[selmon->sellt]) {
 		selmon->sellt ^= 1;
 		selmon->lt[selmon->sellt] = (Layout *)arg->v;
@@ -2384,6 +2385,7 @@ unmanage(Client *c, int destroyed)
 void
 unmapnotify(XEvent *e)
 {
+	fprintf(stderr, "unmapnotify\n");
 	Client *c;
 	XUnmapEvent *ev = &e->xunmap;
 
@@ -2560,6 +2562,7 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
+	fprintf(stderr, "updatestatus\n");
 	Monitor *m;
 	if (!gettextprop(root, XA_WM_NAME, rawstext, sizeof(rawstext)))
 		strcpy(stext, "dwm-"VERSION);
