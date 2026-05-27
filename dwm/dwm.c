@@ -581,6 +581,7 @@ buttonpress(XEvent *e)
 	const BarRule *br;
 	BarArg carg = { 0, 0, 0, 0 };
 	click = ClkRootWin;
+	arg.i = ev->button;
 
 	/* focus monitor if necessary */
 	if ((m = wintomon(ev->window)) && m != selmon
@@ -2577,13 +2578,11 @@ void
 updatestatus(void)
 {
 	// fprintf(stderr, "updatestatus\n");
-	Monitor *m;
 	if (!gettextprop(root, XA_WM_NAME, rawstext, sizeof(rawstext)))
 		strcpy(stext, "dwm-"VERSION);
 	else
 		copyvalidchars(stext, rawstext);
-	for (m = mons; m; m = m->next)
-		drawbar(m);
+	drawbars();
 }
 
 void

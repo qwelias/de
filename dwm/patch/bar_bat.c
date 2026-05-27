@@ -6,6 +6,13 @@
 
 static char bat_txt[8] = " xx ";
 static unsigned int bat_color = 1;
+static char prev_status[3] = "xx";
+
+static void
+setpower(char* mode, char* notif) {
+    spawn(&(Arg){ .v = (char*[]){ "powerprofilesctl", "set", mode, NULL } });
+    spawn(&(Arg){ .v = (char*[]){ "notify-send", "-h", "STRING:x-dunst-stack-tag:power", "-u", "low", notif, NULL } });
+}
 
 int width_bat(Bar *bar, BarArg *a)
 {
@@ -20,6 +27,9 @@ int draw_bat(Bar *bar, BarArg *a)
 
 int click_bat(Bar *bar, Arg *arg, BarArg *a)
 {
+    if (arg->i == Button1) setpower("balanced", "󱐋 balanced");
+    else if (arg->i == Button2) setpower("performance", "󱐋 performance");
+    else if (arg->i == Button3) setpower("power-saver", "󱐋 power-saver");
     return -1;
 }
 
@@ -68,11 +78,20 @@ void bat_update(void) {
     fclose(f);
 
     bat_color = 1;
-    if (!strncmp(status, "C", 1)) bat_color = 6;
+    const int ischarging = !strncmp(status, "C", 1);
+    const int isdischarging = !strncmp(status, "D", 1);
+    if (ischarging) bat_color = 6;
     else if (cap < 10) bat_color = 9 && fprintf(stderr, "bat_update: TODO WARN\n");
     else if (cap < 20) bat_color = 9;
     else if (cap < 30) bat_color = 2;
-    else if (!strncmp(status, "D", 1)) bat_color = 8;
+    else if (isdischarging) bat_color = 8;
+
+    const int ischange = strncmp(prev_status, status, 1);
+    if (ischange) {
+        if (isdischarging) setpower("power-saver", "󱐋 power-saver");
+        else setpower("balanced", "󱐋 balanced");
+        strcpy(prev_status, status);
+    }
 
     char pi[4] = ".";
     if (!strncmp(perf, "b", 1)) snprintf(pi, 3, "·");
