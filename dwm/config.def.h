@@ -6,10 +6,6 @@
 #include <X11/XF86keysym.h>
 #include <X11/Xutil.h>
 
-/* Helper macros for spawning commands */
-#define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
-#define CMD(...)   { .v = (const char*[]){ __VA_ARGS__, NULL } }
-
 /* appearance */
 static const unsigned int borderpx       = 1;   /* border pixel of windows */
 static const unsigned int snap           = 32;  /* snap pixel */
@@ -119,11 +115,11 @@ static const Rule rules[] = {
 	 *	WM_WINDOW_ROLE(STRING) = role
 	 *	_NET_WM_WINDOW_TYPE(ATOM) = wintype
 	 */
-	RULE(.title = "Audio", .isfloating = 1, .floatpos = "100%   0%")
-	RULE(.wintype = WTYPE "DIALOG", .isfloating = 1, .iscentered = 1)
-	RULE(.wintype = WTYPE "UTILITY", .isfloating = 1, .iscentered = 1)
-	RULE(.wintype = WTYPE "TOOLBAR", .isfloating = 1)
-	RULE(.wintype = WTYPE "SPLASH", .isfloating = 1)
+	{ .monitor = -1, .title = "Audio", .isfloating = 1, .floatpos = "100%   0%"},
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1, .iscentered = 1},
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1, .iscentered = 1},
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_TOOLBAR", .isfloating = 1},
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_SPLASH", .isfloating = 1}
 };
 
 /* Bar rules allow you to configure what is shown where on the bar, as well as
@@ -149,7 +145,6 @@ static const BarRule barrules[] = {
 	{  0,        0,     BAR_ALIGN_RIGHT,  width_systray,            draw_systray,           click_systray,           NULL,                    "systray" },
 	{ -1,        0,     BAR_ALIGN_NONE,   width_wintitle,           draw_wintitle,          click_wintitle,          NULL,                    "wintitle" },
 };
-
 static const BarUpdateSet barupdates[] = {
 	{ 3, system_stats_update, "system_stats_update" },
 	{ 3, update_time, "update_time" },
