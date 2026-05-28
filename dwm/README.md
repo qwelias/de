@@ -3,11 +3,7 @@ based on [bakkeby/dwm-flexipatch](github.com/bakkeby/dwm-flexipatch)
 # changes
 
 ## known patches
-- BAR_DWMBLOCKS_PATCH
 - BAR_LTSYMBOL_PATCH
-- BAR_STATUS_PATCH
-- BAR_STATUSCMD_PATCH
-- BAR_STATUSCOLORS_PATCH
 - BAR_SYSTRAY_PATCH
 - BAR_TAGS_PATCH
 - BAR_UNDERLINETAGS_PATCH
@@ -37,3 +33,9 @@ based on [bakkeby/dwm-flexipatch](github.com/bakkeby/dwm-flexipatch)
     - handling some button presses based on active layout
     - changes to setlayout
     - pop client on focus
+- some bar modules and a background thread that updates them on a timer
+    - bar logic is fully in dwm, no reliance on root window props
+    - if you want to render output of an extenal command see `spawn_capture` usage for example
+
+## TODO
+- I really don't like that audio updates are done via external commands, ideally we should be able to connect to pipewire and listen to or emit updates, but I have skill issues for now
