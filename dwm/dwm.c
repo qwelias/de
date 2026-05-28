@@ -369,8 +369,6 @@ static void zoom(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
-static char stext[512];
-static char rawstext[512];
 static pthread_t barloopth;
 
 static int keypressed;
@@ -2636,11 +2634,6 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
-	// fprintf(stderr, "updatestatus\n");
-	if (!gettextprop(root, XA_WM_NAME, rawstext, sizeof(rawstext)))
-		strcpy(stext, "dwm-"VERSION);
-	else
-		copyvalidchars(stext, rawstext);
 	drawbars();
 }
 

@@ -124,8 +124,6 @@ static const Rule rules[] = {
 	RULE(.wintype = WTYPE "UTILITY", .isfloating = 1, .iscentered = 1)
 	RULE(.wintype = WTYPE "TOOLBAR", .isfloating = 1)
 	RULE(.wintype = WTYPE "SPLASH", .isfloating = 1)
-	RULE(.class = "Gimp", .tags = 1 << 4)
-	RULE(.class = "Firefox", .tags = 1 << 7)
 };
 
 /* Bar rules allow you to configure what is shown where on the bar, as well as
@@ -202,9 +200,6 @@ static const char *termcmd[]  = { "ghostty", NULL };
 
 static const Layout *layouts_swap[] = { &layouts[2], &layouts[0] };
 
-/* This defines the name of the executable that handles the bar (used for signalling purposes) */
-#define STATUSBAR "dwmblocks"
-
 static const char *up_vol[]   = { "/home/me/script/kb-volume.sh", "+", NULL };
 static const char *down_vol[] = { "/home/me/script/kb-volume.sh", "-", NULL };
 static const char *mute_vol[] = { "/home/me/script/kb-volume.sh", "x", NULL };
@@ -279,11 +274,6 @@ static const Button buttons[] = {
 	/* click                event mask           button         layout           function        argument */
 	{ ClkLtSymbol,          0,                   Button1,       NULL,            setlayout,      {.v = &layouts[3] } },
 	{ ClkLtSymbol,          0,                   Button3,       NULL,            swaplayout,     {.v = (const Layout *[]) { &layouts[2], &layouts[0] } } },
-	{ ClkStatusText,        0,                   Button1,       NULL,            sigstatusbar,   {.i = 1 } },
-	{ ClkStatusText,        0,                   Button2,       NULL,            sigstatusbar,   {.i = 2 } },
-	{ ClkStatusText,        0,                   Button3,       NULL,            sigstatusbar,   {.i = 3 } },
-	{ ClkStatusText,        0,                   Button4,       NULL,            sigstatusbar,   {.i = 4 } },
-	{ ClkStatusText,        0,                   Button5,       NULL,            sigstatusbar,   {.i = 5 } },
 	{ ClkClientWin,         MODKEY,              Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkClientWin,         MODKEY,              Button2,       NULL,            togglefloating, {0} },
 	{ ClkClientWin,         MODKEY,              Button3,       NULL,            resizemouse,    {0} },
