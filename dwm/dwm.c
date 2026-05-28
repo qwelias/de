@@ -25,6 +25,7 @@
 #include <locale.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -335,6 +336,7 @@ static void setup(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void spawn(const Arg *arg);
+static void spawn_capture(const Arg *arg, char* output, ssize_t output_size);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void togglebar(const Arg *arg);
@@ -2263,6 +2265,63 @@ spawn(const Arg *arg)
 		execvp(((char **)arg->v)[0], (char **)arg->v);
 		die("dwm: execvp '%s' failed:", ((char **)arg->v)[0]);
 	}
+}
+
+void
+spawn_capture(const Arg *arg, char *output, ssize_t output_size)
+{
+	int pipefd[2];
+	pid_t pid;
+	ssize_t readbytes = 0;
+	struct sigaction sa;
+
+	if (pipe(pipefd) == -1) {
+		perror("pipe");
+		return;
+	}
+
+	pid = fork();
+	if (pid == -1) {
+		perror("fork");
+		close(pipefd[0]);
+		close(pipefd[1]);
+		return;
+	}
+
+	if (pid == 0)
+	{
+		if (dpy)
+			close(ConnectionNumber(dpy));
+
+		setsid();
+
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = 0;
+		sa.sa_handler = SIG_DFL;
+		sigaction(SIGCHLD, &sa, NULL);
+
+		close(pipefd[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
+		dup2(pipefd[1], STDERR_FILENO);
+		close(pipefd[1]);
+
+		execvp(((char **)arg->v)[0], (char **)arg->v);
+		return;
+	} 
+	else
+	{
+		close(pipefd[1]);
+		while (output_size - readbytes > 0) {
+			ssize_t bytes = read(pipefd[0], output + readbytes, output_size - readbytes);
+			if (bytes <= 0) break;
+
+			readbytes += bytes;
+		}
+
+		close(pipefd[0]);
+	}
+
+	return;
 }
 
 void

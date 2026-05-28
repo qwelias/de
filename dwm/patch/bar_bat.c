@@ -6,7 +6,7 @@
 
 static char bat_txt[8] = " xx ";
 static unsigned int bat_color = 1;
-static char prev_status[3] = "xx";
+static char wasdischarging = 0;
 
 static void
 setpower(char* mode, char* notif) {
@@ -81,16 +81,20 @@ void bat_update(void) {
     const int ischarging = !strncmp(status, "C", 1);
     const int isdischarging = !strncmp(status, "D", 1);
     if (ischarging) bat_color = 6;
-    else if (cap < 10) bat_color = 9 && fprintf(stderr, "bat_update: TODO WARN\n");
+    else if (cap < 10) {
+        bat_color = 9;
+        char notif[32] = {0};
+        snprintf(notif, 32, "󱃍 %d%% charge left !!!", (int)cap);
+        spawn(&(Arg){ .v = (char*[]){ "notify-send", "-t", "2000", "-u", "critical", notif, NULL } });
+    }
     else if (cap < 20) bat_color = 9;
     else if (cap < 30) bat_color = 2;
     else if (isdischarging) bat_color = 8;
 
-    const int ischange = strncmp(prev_status, status, 1);
-    if (ischange) {
+    if (wasdischarging != isdischarging) {
         if (isdischarging) setpower("power-saver", "󱐋 power-saver");
         else setpower("balanced", "󱐋 balanced");
-        strcpy(prev_status, status);
+        wasdischarging = isdischarging;
     }
 
     char pi[4] = ".";

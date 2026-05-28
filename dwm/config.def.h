@@ -145,9 +145,9 @@ static const BarRule barrules[] = {
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_ltsymbol,           draw_ltsymbol,          click_ltsymbol,          NULL,                    "layout" },
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_tags,               draw_tags,              click_tags,              hover_tags,              "tags" },
 	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_bat,                draw_bat,               click_bat,               NULL,                    "bat" },
-	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_statuscolors,       draw_statuscolors,      click_statuscmd,         NULL,                    "statuscolors" },
-	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_time,               draw_time,              click_time,              NULL,                    "time" },
-	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_system_stats,       draw_system_stats,      click_system_stats,      NULL,                    "system_stats" },
+	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_audio,              draw_audio,             click_audio,             NULL,                    "bar_audio" },
+	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_time,               draw_time,              click_time,              NULL,                    "bar_time" },
+	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_system_stats,       draw_system_stats,      click_system_stats,      NULL,                    "bar_system_stats" },
 	{  0,        0,     BAR_ALIGN_RIGHT,  width_systray,            draw_systray,           click_systray,           NULL,                    "systray" },
 	{ -1,        0,     BAR_ALIGN_NONE,   width_wintitle,           draw_wintitle,          click_wintitle,          NULL,                    "wintitle" },
 };
@@ -156,6 +156,7 @@ static const BarUpdateSet barupdates[] = {
 	{ 3, system_stats_update, "system_stats_update" },
 	{ 3, update_time, "update_time" },
 	{ 3, bat_update, "bat_update" },
+	{ 3, audio_update, "audio_update" },
 };
 
 /* layout(s) */

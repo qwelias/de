@@ -14,6 +14,7 @@
 #include "bar_system_stats.h"
 #include "bar_time.h"
 #include "bar_bat.h"
+#include "bar_audio.h"
 
 /* Other patches */
 #include "attachx.h"
