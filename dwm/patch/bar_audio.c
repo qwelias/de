@@ -6,6 +6,12 @@
 static char audio_txt[16] = "  X X 000  ";
 static unsigned int audio_color = 1;
 
+static const char* killwiremix[] = { "bash", "-c", "pkill wiremix && echo 0 || echo 1", NULL };
+static const char* wiremix[] = { "ghostty", "--title=WIREMIX", "--confirm-close-surface=false", "-e", "wiremix", NULL };
+static const char* wpctlsink[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@", NULL };
+static const char* wpctlsource[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@", NULL };
+static const char* icons[] = { " "," ","󰕾 ","󰝟 " };
+
 int width_audio(Bar *bar, BarArg *a)
 {
     return TEXTW(audio_txt) - lrpad;
@@ -19,16 +25,20 @@ int draw_audio(Bar *bar, BarArg *a)
 
 int click_audio(Bar *bar, Arg *arg, BarArg *a)
 {
+    char buf[64] = {0};
+
     if (arg->i == Button1) spawn(&(Arg){ .v = mute_mic });
+    else if (arg->i == Button2) {
+        spawn_capture(&(Arg){ .v = killwiremix }, buf, sizeof(buf) - 1);
+        fprintf(stderr, "click_audio: buf:%s\n", buf);
+        if (buf[0] == '0') return -1;
+        spawn(&(Arg){ .v = wiremix });
+    }
     else if (arg->i == Button3) spawn(&(Arg){ .v = mute_vol });
     else if (arg->i == Button4) spawn(&(Arg){ .v = up_vol });
     else if (arg->i == Button5) spawn(&(Arg){ .v = down_vol });
     return -1;
 }
-
-static const char* wpctlsink[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@", NULL };
-static const char* wpctlsource[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@", NULL };
-static const char* icons[] = { " "," ","󰕾 ","󰝟 " };
 
 void audio_update(void)
 {
@@ -39,13 +49,13 @@ void audio_update(void)
     int sourcem = 0;
     char* strp;
 
-    spawn_capture(&(Arg){ .v = wpctlsink }, sink, sizeof(sink));
+    spawn_capture(&(Arg){ .v = wpctlsink }, sink, sizeof(sink) - 1);
     sink[12] = '\n';
     sinkvol = strtod(sink+8, &strp);
-    if (!strncmp(sink+13, "[MU", 3)) sinkm = 1;
+    if (!strncmp(sink+13, "[M", 2)) sinkm = 1;
 
-    spawn_capture(&(Arg){ .v = wpctlsource }, source, sizeof(source));
-    if (!strncmp(source+13, "[MU", 3)) sourcem = 1;
+    spawn_capture(&(Arg){ .v = wpctlsource }, source, sizeof(source) - 1);
+    if (!strncmp(source+13, "[M", 2)) sourcem = 1;
 
     snprintf(audio_txt, sizeof(audio_txt), 
         "  %s%s%03d  ",
