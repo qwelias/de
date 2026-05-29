@@ -116,8 +116,8 @@ static const Rule rules[] = {
 	 *	_NET_WM_WINDOW_TYPE(ATOM) = wintype
 	 */
 	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1, .floatpos = "100%   0% 800W 300H"},
-	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1, .floatpos = "89%   0% 210W 510H"},
-	{ .monitor = -1, .title = "TIMES", .isfloating = 1, .floatpos = "100%   0% 430W 190H"},
+	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1, .floatpos = "88%   0% 255W 550H"},
+	{ .monitor = -1, .title = "TIMES", .isfloating = 1, .floatpos = "88%   0% 365W 210H"},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1, .iscentered = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1, .iscentered = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_TOOLBAR", .isfloating = 1},

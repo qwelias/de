@@ -15,8 +15,8 @@ int draw_time(Bar *bar, BarArg *a)
 }
 
 static const char* killsleep[] = { "bash", "-c", "pkill sleep && echo 0 || echo 1", NULL };
-static const char* calendar[] = { "ghostty", "--title=CALENDAR", "--confirm-close-surface=false", "--cursor-opacity=0", "-e", "bash", "-c", "cal -3c1; exec sleep 100", NULL };
-static const char* times[] = { "ghostty", "--title=TIMES", "--confirm-close-surface=false", "--cursor-opacity=0", "-e", "bash", "-c", "~/script/times.sh; exec sleep 100", NULL };
+static const char* calendar[] = { "ghostty", "--window-padding-x=20,0", "--window-padding-y=20,0", "--title=CALENDAR", "--confirm-close-surface=false", "--cursor-opacity=0", "-e", "bash", "-c", "cal -3c1; exec sleep 100", NULL };
+static const char* times[] = { "ghostty", "--window-padding-x=20,0", "--window-padding-y=17,0", "--title=TIMES", "--confirm-close-surface=false", "--cursor-opacity=0", "-e", "bash", "-c", "~/script/times.sh; exec sleep 100", NULL };
 
 int click_time(Bar *bar, Arg *arg, BarArg *a)
 {
