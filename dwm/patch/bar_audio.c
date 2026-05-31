@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static char audio_txt[16] = "  X X 000  ";
+static char audio_txt[15] = " X X 000  ";
 static unsigned int audio_color = 1;
 
 static const char* killwiremix[] = { "bash", "-c", "pkill wiremix && echo 0 || echo 1", NULL };
@@ -58,7 +58,7 @@ void audio_update(void)
     if (!strncmp(source+13, "[M", 2)) sourcem = 1;
 
     snprintf(audio_txt, sizeof(audio_txt), 
-        "  %s%s%03d  ",
+        " %s%s%03d  ",
         icons[sourcem], icons[sinkm+2], (int)(sinkvol * 100)
     );
 }

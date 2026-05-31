@@ -1,3 +1,40 @@
+static const unsigned int client_indicators_width = 600;
+static const unsigned int client_indicators_spacing = 5;
+static const unsigned int client_indicators_height_active = 2;
+static const unsigned int client_indicators_height_other = 1;
+
+static void
+draw_client_indicators(Bar *bar) {
+	Client *c = bar->mon->clients;
+	unsigned int cn = 0;
+	unsigned int cliw = 0;
+	unsigned int clis = bar->bw/2 - client_indicators_width/2;
+	unsigned int active = 0;
+
+	while (c) {
+		if (ISVISIBLE(c)) cn++;
+		c = c->next;
+	}
+	if (!cn || cn > 50) return;
+
+	cliw = (client_indicators_width - cn*client_indicators_spacing) / cn;
+	c = bar->mon->clients;
+	cn = 0;
+	while (c) {
+		active = bar->mon->sel == c;
+		if (ISVISIBLE(c)) {
+			drw_rect(
+				drw,
+				clis + cliw*cn + client_indicators_spacing*cn, bar->by,
+				cliw, active ? client_indicators_height_active : client_indicators_height_other,
+				1, 0
+			);
+			cn++;
+		}
+		c = c->next;
+	} 
+}
+
 int
 width_wintitle(Bar *bar, BarArg *a)
 {
@@ -35,6 +72,7 @@ draw_wintitle(Bar *bar, BarArg *a)
 	drw_text(drw, tx, a->y, tw, a->h, 0, c->name, 0, False);
 
 	drawstateindicator(m, c, 1, x, a->y, w, a->h, 0, 0, c->isfixed);
+	draw_client_indicators(bar);
 	return 1;
 }
 

@@ -21,7 +21,6 @@
  * To understand everything else, start reading main().
  */
 #include <X11/X.h>
-#include <errno.h>
 #include <locale.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -1110,7 +1109,7 @@ drawbarwin(Bar *bar)
 		}
 		bar->w[r] = w;
 		darg.x = bar->x[r];
-		darg.y = bar->borderpx - 1;
+		darg.y = bar->borderpx;
 		darg.h = bar->bh - 2 * bar->borderpx;
 		darg.w = bar->w[r];
 		if (br->drawfunc)
@@ -1437,7 +1436,7 @@ keyrelease(XEvent *e)
 			&& !btnpressed
 		) {
 			if (keypressed && keypressed != keys[i].keysym) {
-				if (keypressed == XK_a || keypressed == XK_d) pop(selmon->sel);
+				// if (keypressed == XK_a || keypressed == XK_d) pop(selmon->sel);
 				keypressed = 0;
 			} else {
 				keys[i].func(&(keys[i].arg));
@@ -2075,7 +2074,8 @@ setlayout(const Arg *arg)
 	grabkeys();
 	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->ltsymbol);
 	if (selmon->sel) {
-		pop(selmon->sel);
+		// pop(selmon->sel);
+		arrange(selmon->sel->mon);
 	} else {
 		drawbar(selmon);
 	}

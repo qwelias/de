@@ -6,6 +6,7 @@
 
 static char bat_txt[8] = " xx ";
 static unsigned int bat_color = 1;
+static unsigned int bat_perfi = 0;
 static char wasdischarging = 0;
 
 static void
@@ -22,7 +23,18 @@ int width_bat(Bar *bar, BarArg *a)
 int draw_bat(Bar *bar, BarArg *a)
 {
     drw_setscheme(drw, scheme[(unsigned int)(bat_color-1)]);
-    return drw_text(drw, a->x, a->y, a->w, a->h, 0, bat_txt, 0, 1);
+    int res = drw_text(drw, a->x, a->y, a->w, a->h, 0, bat_txt, 0, 1);
+
+    unsigned int w = a->w * ((double)(bat_perfi + 1) / 3);
+    unsigned int x = a->x + (a->w - w) / 2;
+    unsigned int h = 1 + bat_perfi;
+    drw_rect(
+        drw,
+        x, a->y + a->h - h,
+        w, h,
+        1, 0
+    );
+    return res;
 }
 
 int click_bat(Bar *bar, Arg *arg, BarArg *a)
@@ -97,12 +109,12 @@ void bat_update(void) {
         wasdischarging = isdischarging;
     }
 
-    char pi[4] = ".";
-    if (!strncmp(perf, "b", 1)) snprintf(pi, 3, "·");
-    else if (!strncmp(perf, "pe", 2)) snprintf(pi, 2, ":");
+    bat_perfi = 0;
+    if (!strncmp(perf, "b", 1)) bat_perfi = 1;
+    else if (!strncmp(perf, "pe", 2)) bat_perfi = 2;
 
     snprintf(bat_txt, sizeof(bat_txt),
-        " %02d%s",
-        (int)cap, pi
+        " %02d ",
+        (int)cap
     );
 }
