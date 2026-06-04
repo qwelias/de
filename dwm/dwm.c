@@ -348,7 +348,6 @@ static void updateclientlist(void);
 static int updategeom(void);
 static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
-static void updatestatus(void);
 static void updatetitle(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
@@ -1436,7 +1435,7 @@ keyrelease(XEvent *e)
 			&& !btnpressed
 		) {
 			if (keypressed && keypressed != keys[i].keysym) {
-				// if (keypressed == XK_a || keypressed == XK_d) pop(selmon->sel);
+				if (keypressed == XK_a || keypressed == XK_d) pop(selmon->sel);
 				keypressed = 0;
 			} else {
 				keys[i].func(&(keys[i].arg));
@@ -1724,7 +1723,7 @@ propertynotify(XEvent *e)
 	}
 
 	if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
-		updatestatus();
+		drawbars();
 	} else if (ev->state == PropertyDelete) {
 		return; /* ignore */
 	} else if ((c = wintoclient(ev->window))) {
@@ -2074,8 +2073,8 @@ setlayout(const Arg *arg)
 	grabkeys();
 	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->ltsymbol);
 	if (selmon->sel) {
-		// pop(selmon->sel);
-		arrange(selmon->sel->mon);
+		pop(selmon->sel);
+		// arrange(selmon->sel->mon);
 	} else {
 		drawbar(selmon);
 	}
@@ -2173,7 +2172,7 @@ setup(void)
 		scheme[i] = drw_scm_create(drw, colors[i], ColCount);
 
 	updatebars();
-	updatestatus();
+	drawbars();
 
 	/* supporting window for NetWMCheck */
 	wmcheckwin = XCreateSimpleWindow(dpy, root, 0, 0, 1, 1, 0, 0, 0);
@@ -2626,12 +2625,6 @@ updatesizehints(Client *c)
 		c->maxa = c->mina = 0.0;
 	c->isfixed = (c->maxw && c->maxh && c->maxw == c->minw && c->maxh == c->minh);
 	c->hintsvalid = 1;
-}
-
-void
-updatestatus(void)
-{
-	drawbars();
 }
 
 void
