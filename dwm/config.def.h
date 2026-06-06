@@ -21,10 +21,6 @@ static int floatposgrid_x                = 5;  /* float grid columns */
 static int floatposgrid_y                = 5;  /* float grid rows */
 static const unsigned int systrayspacing = 5;   /* systray spacing */
 static const int showsystray             = 1;   /* 0 means no systray */
-static const unsigned int ulinepad = 5;         /* horizontal padding between the underline and tag */
-static const unsigned int ulinestroke  = 2;     /* thickness / height of the underline */
-static const unsigned int ulinevoffset = 0;     /* how far above the bottom of the bar the line should appear */
-static const int ulineall = 0;                  /* 1 to show underline on all tags, 0 for just the active ones */
 
 /* Indicators: see patch/bar_indicators.h for options */
 static int tagindicatortype              = INDICATOR_TOP_LEFT_SQUARE;
@@ -118,6 +114,7 @@ static const Rule rules[] = {
 	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1, .floatpos = "100%   0% 800W 300H"},
 	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1, .floatpos = "88%   0% 255W 550H"},
 	{ .monitor = -1, .title = "TIMES", .isfloating = 1, .floatpos = "88%   0% 365W 210H"},
+	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1, .iscentered = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1, .iscentered = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1, .iscentered = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_TOOLBAR", .isfloating = 1},
@@ -141,9 +138,9 @@ static const BarRule barrules[] = {
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_ltsymbol,           draw_ltsymbol,          click_ltsymbol,          NULL,                    "layout" },
 	{ -1,        0,     BAR_ALIGN_LEFT,   width_tags,               draw_tags,              click_tags,              hover_tags,              "tags" },
 	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_bat,                draw_bat,               click_bat,               NULL,                    "bat" },
+	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_system_stats,       draw_system_stats,      click_system_stats,      NULL,                    "bar_system_stats" },
 	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_audio,              draw_audio,             click_audio,             NULL,                    "bar_audio" },
 	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_time,               draw_time,              click_time,              NULL,                    "bar_time" },
-	{ 'A',       0,     BAR_ALIGN_RIGHT,  width_system_stats,       draw_system_stats,      click_system_stats,      NULL,                    "bar_system_stats" },
 	{  0,        0,     BAR_ALIGN_RIGHT,  width_systray,            draw_systray,           click_systray,           NULL,                    "systray" },
 	{ -1,        0,     BAR_ALIGN_NONE,   width_wintitle,           draw_wintitle,          click_wintitle,          NULL,                    "wintitle" },
 };
@@ -233,8 +230,6 @@ static const Key keys[] = {
 	{ KeyPress,    MODKEY,                       XK_a,                       NULL,         focusstack,             {.i = -1 } },
 	{ KeyPress,    0,                            XK_d,                       &layouts[3],  focusstack,             {.i = +1 } },
 	{ KeyPress,    0,                            XK_a,                       &layouts[3],  focusstack,             {.i = -1 } },
-	{ KeyPress,    MODKEY,                       XK_Return,                  NULL,         zoom,                   {0} },
-	{ KeyPress,    MODKEY,                       XK_Tab,                     NULL,         view,                   {0} },
 	// nav tags
 	{ KeyPress,    MODKEY|ShiftMask,             XK_q,                       NULL,         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
 	{ KeyPress,    MODKEY|ShiftMask,             XK_e,                       NULL,         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
@@ -269,6 +264,8 @@ static const Key keys[] = {
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
 	/* click                event mask           button         layout           function        argument */
+	{ ClkLtSymbol,          0,                   Button4,       NULL,            focusstack,     {.i = -1 } },
+	{ ClkLtSymbol,          0,                   Button5,       NULL,            focusstack,     {.i = +1 } },
 	{ ClkLtSymbol,          0,                   Button1,       NULL,            setlayout,      {.v = &layouts[3] } },
 	{ ClkLtSymbol,          0,                   Button3,       NULL,            swaplayout,     {.v = (const Layout *[]) { &layouts[2], &layouts[0] } } },
 	{ ClkClientWin,         MODKEY,              Button1,       NULL,            moveorplace,    {.i = 1} },
@@ -281,6 +278,8 @@ static const Button buttons[] = {
 	{ ClkClientWin,         MODKEY|ShiftMask,    Button1,       NULL,            dragmfact,      {0} },
 	{ ClkTagBar,            0,                   Button1,       NULL,            view,           {0} },
 	{ ClkTagBar,            0,                   Button3,       NULL,            toggleview,     {0} },
+	{ ClkTagBar,            0,                   Button4,       NULL,            shiftview,       { .i = -1 } },
+	{ ClkTagBar,            0,                   Button5,       NULL,            shiftview,       { .i = +1 } },
 	{ ClkTagBar,            MODKEY,              Button1,       NULL,            tag,            {0} },
 	{ ClkTagBar,            MODKEY,              Button3,       NULL,            toggletag,      {0} },
 };
