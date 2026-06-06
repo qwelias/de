@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+static double bat_width = 2.3;
 static char bat_txt[8] = " xx ";
 static unsigned int bat_color = 1;
 static unsigned int bat_perfi = 0;
@@ -17,13 +18,15 @@ setpower(char* mode, char* notif) {
 
 int width_bat(Bar *bar, BarArg *a)
 {
-    return TEXTW(bat_txt) - lrpad;
+    return bat_width*fonth;
 }
 
 int draw_bat(Bar *bar, BarArg *a)
 {
     drw_setscheme(drw, scheme[(unsigned int)(bat_color-1)]);
-    int res = drw_text(drw, a->x, a->y, a->w, a->h, 0, bat_txt, 0, 1);
+
+    int lpad = (bat_width*fonth - drw_fontset_getwidth(drw, bat_txt, 0)) / 2;
+    int res = drw_text(drw, a->x, a->y, a->w, a->h, lpad, bat_txt, 0, 1);
 
     unsigned int w = a->w * ((double)(bat_perfi + 1) / 3);
     unsigned int x = a->x + (a->w - w) / 2;

@@ -1,13 +1,16 @@
+static double lts_width = 3;
+
 int
 width_ltsymbol(Bar *bar, BarArg *a)
 {
-	return TEXTW(bar->mon->ltsymbol);
+	return lts_width*fonth;
 }
 
 int
 draw_ltsymbol(Bar *bar, BarArg *a)
 {
-	return drw_text(drw, a->x, a->y, a->w, a->h, lrpad / 2, bar->mon->ltsymbol, 0, False);
+    int lpad = (lts_width*fonth - drw_fontset_getwidth(drw, bar->mon->ltsymbol, 0)) / 2;
+	return drw_text(drw, a->x, a->y, a->w, a->h, lpad, bar->mon->ltsymbol, 0, 0);
 }
 
 int

@@ -10,11 +10,11 @@ width_systray(Bar *bar, BarArg *a)
 	if (!systray)
 		return 1;
 	if (showsystray) {
-		for (i = systray->icons; i; w += i->w + systrayspacing, i = i->next);
+		for (i = systray->icons; i; w += i->w + fonth/2, i = i->next);
 		if (!w)
 			XMoveWindow(dpy, systray->win, -systray->h, bar->by);
 	}
-	return w ? w + lrpad - systrayspacing : 0;
+	return w ? w + fonth : 0;
 }
 
 int
@@ -38,7 +38,7 @@ draw_systray(Bar *bar, BarArg *a)
 		wa.border_pixel = 0;
 		systray->h = MIN(a->h, drw->fonts->h);
 		wa.background_pixel = scheme[SchemeNorm][ColBg].pixel;
-		systray->win = XCreateSimpleWindow(dpy, root, bar->bx + a->x + lrpad / 2, -systray->h, MIN(a->w, 1), systray->h, 0, 0, scheme[SchemeNorm][ColBg].pixel);
+		systray->win = XCreateSimpleWindow(dpy, root, bar->bx + a->x + fonth / 2, -systray->h, MIN(a->w, 1), systray->h, 0, 0, scheme[SchemeNorm][ColBg].pixel);
 		XChangeWindowAttributes(dpy, systray->win, CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &wa);
 
 		XSelectInput(dpy, systray->win, SubstructureNotifyMask);
@@ -76,7 +76,7 @@ draw_systray(Bar *bar, BarArg *a)
 			XClearArea(dpy, i->win, 0, 0, 0, 0, True);
 		w += i->w;
 		if (i->next)
-			w += systrayspacing;
+			w += fonth/2;
 		if (i->mon != bar->mon)
 			i->mon = bar->mon;
 	}
@@ -86,7 +86,7 @@ draw_systray(Bar *bar, BarArg *a)
 	XChangeWindowAttributes(dpy, systray->win, CWBackPixel, &wa);
 	XClearWindow(dpy, systray->win);
 
-	XMoveResizeWindow(dpy, systray->win, bar->bx + a->x + lrpad / 2, (w ? bar->by + a->y + (a->h - systray->h) / 2: -systray->h), MAX(w, 1), systray->h);
+	XMoveResizeWindow(dpy, systray->win, bar->bx + a->x + fonth / 2, (w ? bar->by + a->y + (a->h - systray->h) / 2: -systray->h), MAX(w, 1), systray->h);
 	return w;
 }
 

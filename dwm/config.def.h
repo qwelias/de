@@ -19,14 +19,13 @@ static const int showbar                 = 1;   /* 0 means no bar */
 static const int topbar                  = 1;   /* 0 means bottom bar */
 static int floatposgrid_x                = 5;  /* float grid columns */
 static int floatposgrid_y                = 5;  /* float grid rows */
-static const unsigned int systrayspacing = 5;   /* systray spacing */
 static const int showsystray             = 1;   /* 0 means no systray */
 
 /* Indicators: see patch/bar_indicators.h for options */
 static int tagindicatortype              = INDICATOR_TOP_LEFT_SQUARE;
 static int tiledindicatortype            = INDICATOR_NONE;
 static int floatindicatortype            = INDICATOR_TOP_LEFT_SQUARE;
-static const char *fonts[]               = { "Ubuntu Mono:size=13:style=Bold", "Noto Sans Mono:size=13", "Symbols Nerd Font:size=15:style=Mono", "Noto Sans Mono CJK SC:size=13", "Noto Color Emoji:pixelsize=13:antialias=true:autohint=true" };
+static const char *fonts[]               = { "Ubuntu:size=11:style=Bold", "Noto Sans:size=11", "Symbols Nerd Font:size=15", "Noto Sans CJK SC:size=11", "Noto Color Emoji:pixelsize=11:antialias=true:autohint=true" };
 static const char dmenufont[]            = "Ubuntu Mono:size=18";
 
 static char c000000[]                    = "#000000"; // placeholder value
@@ -84,7 +83,7 @@ static char *colors[][ColCount] = {
 	[SchemeUrg]          = { urgfgcolor,       urgbgcolor,       urgbordercolor,       urgfloatcolor },
 };
 
-static const char *tags[] = { "1", "2", "3", "4", "5"};
+static const char *tags[] = { "1", "2", "3", "4", "5" };
 
 /* There are two options when it comes to per-client rules:
  *  - a typical struct table or
@@ -156,17 +155,17 @@ static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] 
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
-static const int refreshrate = 60;  /* refresh rate (per second) for client move/resize */
+static const int refreshrate = 20;  /* refresh rate (per second) for client move/resize */
 static const int refreshrate_placemouse = 60; /* refresh rate (per second) for placemouse */
 static const int refreshrate_dragmfact = 60; /* refresh rate (per second) for dragmfact */
 static const int refreshrate_dragcfact = 60; /* refresh rate (per second) for dragcfact */
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
+	{ "[ ]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
-	{ ":::",      gaplessgrid },
+	{ "[   ]",      monocle },
+	{ ": : :",      gaplessgrid },
 };
 
 /* key definitions */
@@ -230,6 +229,8 @@ static const Key keys[] = {
 	{ KeyPress,    MODKEY,                       XK_a,                       NULL,         focusstack,             {.i = -1 } },
 	{ KeyPress,    0,                            XK_d,                       &layouts[3],  focusstack,             {.i = +1 } },
 	{ KeyPress,    0,                            XK_a,                       &layouts[3],  focusstack,             {.i = -1 } },
+	{ KeyPress,    MODKEY,                       XK_Tab,                     NULL,         zoom,                   {0} },
+	{ KeyPress,    0,                            XK_Tab,                     &layouts[3],  zoom,                   {0} },
 	// nav tags
 	{ KeyPress,    MODKEY|ShiftMask,             XK_q,                       NULL,         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
 	{ KeyPress,    MODKEY|ShiftMask,             XK_e,                       NULL,         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
@@ -268,6 +269,9 @@ static const Button buttons[] = {
 	{ ClkLtSymbol,          0,                   Button5,       NULL,            focusstack,     {.i = +1 } },
 	{ ClkLtSymbol,          0,                   Button1,       NULL,            setlayout,      {.v = &layouts[3] } },
 	{ ClkLtSymbol,          0,                   Button3,       NULL,            swaplayout,     {.v = (const Layout *[]) { &layouts[2], &layouts[0] } } },
+	{ ClkWinTitle,          0,                   Button1,       NULL,            moveorplace,    {.i = 1} },
+	{ ClkWinTitle,          0,                   Button2,       NULL,            togglefloating, {0} },
+	{ ClkWinTitle,          0,                   Button3,       NULL,            resizemouse,    {0} },
 	{ ClkClientWin,         MODKEY,              Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkClientWin,         MODKEY,              Button2,       NULL,            togglefloating, {0} },
 	{ ClkClientWin,         MODKEY,              Button3,       NULL,            resizemouse,    {0} },

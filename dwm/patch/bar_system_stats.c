@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int system_stats_width = 5;
 static CpuStat precpustat = {0};
 static CpuStat curcpustat = {0};
 static char system_stats_txt[12] = "  00 ~ 00  ";
@@ -14,13 +15,15 @@ static unsigned int system_stats_color = 1;
 
 int width_system_stats(Bar *bar, BarArg *a)
 {
-    return TEXTW(system_stats_txt) - lrpad;
+    return system_stats_width*fonth;
 }
 
 int draw_system_stats(Bar *bar, BarArg *a)
 {
     drw_setscheme(drw, scheme[(unsigned int)(system_stats_color-1)]);
-    return drw_text(drw, a->x, a->y, a->w, a->h, 0, system_stats_txt, 0, 1);
+
+    int lpad = (system_stats_width*fonth - drw_fontset_getwidth(drw, system_stats_txt, 0)) / 2;
+    return drw_text(drw, a->x, a->y, a->w, a->h, lpad, system_stats_txt, 0, 1);
 }
 
 int click_system_stats(Bar *bar, Arg *arg, BarArg *a)

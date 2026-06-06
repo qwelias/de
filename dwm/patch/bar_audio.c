@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static double audio_width = 5;
 static char audio_txt[15] = " X X 000  ";
 static unsigned int audio_color = 1;
 
@@ -14,13 +15,15 @@ static const char* icons[] = { " "," ","󰕾 ","󰝟 " };
 
 int width_audio(Bar *bar, BarArg *a)
 {
-    return TEXTW(audio_txt) - lrpad;
+    return audio_width*fonth;
 }
 
 int draw_audio(Bar *bar, BarArg *a)
 {
     drw_setscheme(drw, scheme[(unsigned int)(audio_color-1)]);
-    return drw_text(drw, a->x, a->y, a->w, a->h, 0, audio_txt, 0, 1);
+
+    int lpad = (audio_width*fonth - drw_fontset_getwidth(drw, audio_txt, 0)) / 2;
+    return drw_text(drw, a->x, a->y, a->w, a->h, lpad, audio_txt, 0, 1);
 }
 
 int click_audio(Bar *bar, Arg *arg, BarArg *a)

@@ -16,8 +16,8 @@ drawindicator(Monitor *m, Client *c, unsigned int occ, int x, int y, int w, int 
 	if (!(occ & 1 << tag) || type == INDICATOR_NONE)
 		return;
 
-	boxs = drw->fonts->h / 9;
-	boxw = drw->fonts->h / 6 + 2;
+	boxs = drw->fonts->h / 8;
+	boxw = drw->fonts->h / 5 + 2;
 
 	switch (type) {
 	default:
