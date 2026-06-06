@@ -256,15 +256,6 @@ typedef struct {
 	int monitor;
 } Rule;
 
-/* Cross patch compatibility rule macro helper macros */
-#define FLOATING , .isfloating = 1
-#define CENTERED , .iscentered = 1
-#define PERMANENT
-#define FAKEFULLSCREEN
-#define NOSWALLOW
-#define TERMINAL
-#define SWITCHTAG
-
 /* function declarations */
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
@@ -1224,16 +1215,16 @@ focusstack(const Arg *arg)
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
 		return;
 	if (arg->i > 0) {
-		for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
+		for (c = selmon->sel->next; c && (!ISVISIBLE(c) || c->isfloating); c = c->next);
 		if (!c)
-			for (c = selmon->clients; c && !ISVISIBLE(c); c = c->next);
+			for (c = selmon->clients; c && (!ISVISIBLE(c) || c->isfloating); c = c->next);
 	} else {
 		for (i = selmon->clients; i != selmon->sel; i = i->next)
-			if (ISVISIBLE(i))
+			if (ISVISIBLE(i) && !i->isfloating)
 				c = i;
 		if (!c)
 			for (; i; i = i->next)
-				if (ISVISIBLE(i))
+				if (ISVISIBLE(i) && !i->isfloating)
 					c = i;
 	}
 	if (c) {
