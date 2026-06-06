@@ -7,11 +7,24 @@ static double audio_width = 5;
 static char audio_txt[15] = " X X 000  ";
 static unsigned int audio_color = 1;
 
-static const char* killwiremix[] = { "bash", "-c", "pkill wiremix && echo 0 || echo 1", NULL };
 static const char* wiremix[] = { "ghostty", "--title=WIREMIX", "--confirm-close-surface=false", "-e", "wiremix", NULL };
 static const char* wpctlsink[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@", NULL };
 static const char* wpctlsource[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@", NULL };
 static const char* icons[] = { " "," ","󰕾 ","󰝟 " };
+
+static int
+killwiremix(void) {
+    Client* c = selmon->clients;
+    while (c) {
+        if (strstr(c->name, "WIREMIX")) {
+            killclient(&(Arg){ .v = c });
+            return 1;
+        }
+        c = c->next;
+    }
+
+    return 0;
+}
 
 int width_audio(Bar *bar, BarArg *a)
 {
@@ -28,13 +41,9 @@ int draw_audio(Bar *bar, BarArg *a)
 
 int click_audio(Bar *bar, Arg *arg, BarArg *a)
 {
-    char buf[64] = {0};
-
     if (arg->i == Button1) spawn(&(Arg){ .v = mute_mic });
     else if (arg->i == Button2) {
-        spawn_capture(&(Arg){ .v = killwiremix }, buf, sizeof(buf) - 1);
-        fprintf(stderr, "click_audio: buf:%s\n", buf);
-        if (buf[0] == '0') return -1;
+        if (killwiremix()) return -1;
         spawn(&(Arg){ .v = wiremix });
     }
     else if (arg->i == Button3) spawn(&(Arg){ .v = mute_vol });
