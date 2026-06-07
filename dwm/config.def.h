@@ -7,6 +7,7 @@
 #include <X11/Xutil.h>
 
 /* appearance */
+static const unsigned int barhextra      = 10;   /* extra bar height to font height */
 static const unsigned int borderpx       = 1;   /* border pixel of windows */
 static const unsigned int snap           = 32;  /* snap pixel */
 static const unsigned int gappih         = 35;  /* height inner gap between windows */
@@ -164,7 +165,7 @@ static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[ ]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[   ]",      monocle },
+	{ "[    ]",      monocle },
 	{ ": : :",      gaplessgrid },
 };
 

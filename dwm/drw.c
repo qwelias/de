@@ -9,7 +9,7 @@
 #include "util.h"
 
 #define UTF_INVALID 0xFFFD
-static const int bartextvoffset = -1;   /* bar text vertical offset */
+static const int bartextvoffset = 0;   /* bar text vertical offset */
 
 static int
 utf8decode(const char *s_in, long *u, int *err)

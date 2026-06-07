@@ -1,4 +1,4 @@
-static double tags_width = 1.8;
+static double tags_width = 1.6;
 
 int
 width_tags(Bar *bar, BarArg *a)

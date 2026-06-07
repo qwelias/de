@@ -2118,7 +2118,7 @@ setup(void)
 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
 		die("no fonts could be loaded.");
 	fonth = drw->fonts->h;
-	bh = drw->fonts->h + 8;
+	bh = drw->fonts->h + barhextra;
 	updategeom();
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
