@@ -5,7 +5,7 @@
 #include <string.h>
 
 static double bat_width = 2.3;
-static char bat_txt[8] = " xx ";
+static char bat_txt[8] = "";
 static unsigned int bat_color = 1;
 static unsigned int bat_perfi = 0;
 static char wasdischarging = 0;
@@ -18,11 +18,13 @@ setpower(char* mode, char* notif) {
 
 int width_bat(Bar *bar, BarArg *a)
 {
+    if (!bat_txt[0]) return 0;
     return bat_width*fonth;
 }
 
 int draw_bat(Bar *bar, BarArg *a)
 {
+    if (!bat_txt[0]) return 0;
     drw_setscheme(drw, scheme[(unsigned int)(bat_color-1)]);
 
     int lpad = (bat_width*fonth - drw_fontset_getwidth(drw, bat_txt, 0)) / 2;
@@ -52,7 +54,7 @@ void bat_update(void) {
     FILE *f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
     if (!f) {
         fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/capacity)");
-        snprintf(bat_txt, 5, " EC ");
+        snprintf(bat_txt, 1, "");
         return;
     }
     uint64_t cap = 0;
