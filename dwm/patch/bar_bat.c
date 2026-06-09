@@ -5,7 +5,7 @@
 #include <string.h>
 
 static double bat_width = 2.3;
-static char bat_txt[8] = "";
+static char bat_txt[8] = {0};
 static unsigned int bat_color = 1;
 static unsigned int bat_perfi = 0;
 static char wasdischarging = 0;
@@ -54,7 +54,7 @@ void bat_update(void) {
     FILE *f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
     if (!f) {
         fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/capacity)");
-        snprintf(bat_txt, 1, "");
+        bat_txt[0] = 0;
         return;
     }
     uint64_t cap = 0;
