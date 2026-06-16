@@ -1655,6 +1655,10 @@ movemouse(const Arg *arg)
 		focus(NULL);
 	}
 	ignoreconfigurerequests = 0;
+
+	if (!lasttime) {
+		togglefloating(NULL);
+	}
 }
 
 Client *
@@ -1794,8 +1798,7 @@ void
 resizemouse(const Arg *arg)
 {
 	int ocx, ocy, nw, nh, nx, ny;
-	int opx, opy, och, ocw;
-	int horizcorner, vertcorner;
+	int opx, opy;
 	unsigned int dui;
 	Window dummy;
 	Client *c;
@@ -1812,15 +1815,14 @@ resizemouse(const Arg *arg)
 	ny = ocy = c->y;
 	nh = c->h;
 	nw = c->w;
-	och = c->h;
-	ocw = c->w;
 	if (!XQueryPointer(dpy, c->win, &dummy, &dummy, &opx, &opy, &nx, &ny, &dui))
 		return;
-	horizcorner = nx < c->w / 2;
-	vertcorner  = ny < c->h / 2;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-		None, cursor[horizcorner | (vertcorner << 1)]->cursor, CurrentTime) != GrabSuccess)
+		None, cursor[CurResizeBR]->cursor, CurrentTime) != GrabSuccess)
 		return;
+	XWarpPointer (dpy, None, c->win, 0, 0, 0, 0,
+			(c->w + c->bw - 1),
+			(c->h + c->bw - 1));
 	ignoreconfigurerequests = 1;
 	do {
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
@@ -1835,10 +1837,10 @@ resizemouse(const Arg *arg)
 				continue;
 			lasttime = ev.xmotion.time;
 
-			nx = horizcorner ? (ocx + ev.xmotion.x - opx) : c->x;
-			ny = vertcorner ? (ocy + ev.xmotion.y - opy) : c->y;
-			nw = MAX(horizcorner ? (ocx + ocw - nx) : (ocw + (ev.xmotion.x - opx)), 1);
-			nh = MAX(vertcorner ? (ocy + och - ny) : (och + (ev.xmotion.y - opy)), 1);
+			nx = c->x;
+			ny = c->y;
+			nw = ev.xmotion.x - ocx - 2 * c->bw + 1;
+			nh = ev.xmotion.y - ocy - 2 * c->bw + 1;
 			if (c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
 			&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
 			{
@@ -1854,6 +1856,9 @@ resizemouse(const Arg *arg)
 		}
 	} while (ev.type != ButtonRelease);
 
+	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0,
+			(c->w + c->bw - 1),
+			(c->h + c->bw - 1));
 	XUngrabPointer(dpy, CurrentTime);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	if ((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {

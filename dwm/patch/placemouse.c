@@ -136,4 +136,8 @@ placemouse(const Arg *arg)
 	if (nx != -9999)
 		resize(c, nx, ny, c->w, c->h, 0);
 	arrangemon(c->mon);
+
+	if (!lasttime) {
+		togglefloating(NULL);
+	}
 }
