@@ -167,13 +167,12 @@ static const Layout layouts[] = {
 };
 
 /* key definitions */
-#define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ KeyPress,    0,                            KEY,   &layouts[3],   view,           {.ui = 1 << TAG} }, \
-	{ KeyPress,    MODKEY,                       KEY,   NULL,          view,           {.ui = 1 << TAG} }, \
-	{ KeyPress,    MODKEY|ControlMask,           KEY,   NULL,          toggleview,     {.ui = 1 << TAG} }, \
-	{ KeyPress,    MODKEY|ShiftMask,             KEY,   NULL,          tag,            {.ui = 1 << TAG} }, \
-	{ KeyPress,    MODKEY|ControlMask|ShiftMask, KEY,   NULL,          toggletag,      {.ui = 1 << TAG} },
+	{ KeyPress,    Mod4Mask,                       KEY,   NULL,          view,           {.ui = 1 << TAG} }, \
+	{ KeyPress,    Mod4Mask|ControlMask,           KEY,   NULL,          toggleview,     {.ui = 1 << TAG} }, \
+	{ KeyPress,    Mod4Mask|ShiftMask,             KEY,   NULL,          tag,            {.ui = 1 << TAG} }, \
+	{ KeyPress,    Mod4Mask|ControlMask|ShiftMask, KEY,   NULL,          toggletag,      {.ui = 1 << TAG} },
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
@@ -191,10 +190,10 @@ static const char *termcmd[]  = { "ghostty", NULL };
 
 static const Layout *layouts_swap[] = { &layouts[2], &layouts[0] };
 
-static const char *up_vol[]   = { "/home/me/script/kb-volume.sh", "+", NULL };
-static const char *down_vol[] = { "/home/me/script/kb-volume.sh", "-", NULL };
-static const char *mute_vol[] = { "/home/me/script/kb-volume.sh", "x", NULL };
-static const char *mute_mic[] = { "/home/me/script/kb-volume.sh", "m", NULL };
+static const char *up_vol[]   = { "kb-volume.sh", "+", NULL };
+static const char *down_vol[] = { "kb-volume.sh", "-", NULL };
+static const char *mute_vol[] = { "kb-volume.sh", "x", NULL };
+static const char *mute_mic[] = { "kb-volume.sh", "m", NULL };
 static const char *brighter[] = { "brightnessctl", "set", "10%+", NULL };
 static const char *dimmer[]   = { "brightnessctl", "set", "10%-", NULL };
 static const char *kbd_up[]   = { "brightnessctl", "--device=tpacpi::kbd_backlight", "set", "10%+", NULL };
@@ -202,6 +201,8 @@ static const char *kbd_down[] = { "brightnessctl", "--device=tpacpi::kbd_backlig
 static const char *lock[]     = { "xset", "dpms", "force", "off", NULL };
 static const char *maimss[]   = { "maimpick.sh", "ss", NULL };
 static const char *maimocr[]  = { "maimpick.sh", "ocr", NULL };
+static const char *switchsink[]  = { "switch_sink.sh", NULL };
+static const char *suspend[]  = { "systemctl", "suspend", NULL };
 
 static const Key keys[] = {
 	/* event,      modifier                      key                         layout        function                argument */
@@ -215,48 +216,50 @@ static const Key keys[] = {
 	{ KeyPress,    0,                            XF86XK_KbdBrightnessUp,     NULL,         spawn,                  {.v = kbd_up } },
 	{ KeyPress,    0,                            XF86XK_KbdBrightnessDown,   NULL,         spawn,                  {.v = kbd_down } },
 	// spawn
-	{ KeyPress,    MODKEY,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
-	{ KeyPress,    MODKEY,                       XK_t,                       NULL,         spawn,                  {.v = termcmd } },
-	{ KeyPress,    MODKEY,                       XK_l,                       NULL,         spawn,                  {.v = lock } },
-	{ KeyPress,    0,                            XK_Print,                   NULL,         spawn,                  {.v = maimss } },
-	{ KeyPress,    ShiftMask,                    XK_Print,                   NULL,         spawn,                  {.v = maimocr } },
+	{ KeyPress,    Mod4Mask,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
+	{ KeyPress,    Mod4Mask,                       XK_t,                       NULL,         spawn,                  {.v = termcmd } },
+	{ KeyPress,    Mod4Mask,                       XK_l,                       NULL,         spawn,                  {.v = lock } },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_l,                       NULL,         spawn,                  {.v = suspend } },
+	{ KeyPress,    0,                              XK_Print,                   NULL,         spawn,                  {.v = maimss } },
+	{ KeyPress,    ShiftMask,                      XK_Print,                   NULL,         spawn,                  {.v = maimocr } },
+	{ KeyPress,    ControlMask|Mod1Mask,           XK_x,                       NULL,         spawn,                  {.v = switchsink } },
 
 	// nav clients
-	{ KeyPress,    MODKEY,                       XK_b,                       NULL,         togglebar,              {0} },
-	{ KeyPress,    MODKEY,                       XK_d,                       NULL,         focusstack,             {.i = +1 } },
-	{ KeyPress,    MODKEY,                       XK_a,                       NULL,         focusstack,             {.i = -1 } },
-	{ KeyPress,    0,                            XK_d,                       &layouts[3],  focusstack,             {.i = +1 } },
-	{ KeyPress,    0,                            XK_a,                       &layouts[3],  focusstack,             {.i = -1 } },
-	{ KeyPress,    MODKEY,                       XK_Tab,                     NULL,         zoom,                   {0} },
-	{ KeyPress,    0,                            XK_Tab,                     &layouts[3],  zoom,                   {0} },
+	{ KeyPress,    Mod4Mask,                       XK_b,                       NULL,         togglebar,              {0} },
+	{ KeyPress,    Mod4Mask,                       XK_d,                       NULL,         focusstack,             {.i = +1 } },
+	{ KeyPress,    Mod4Mask,                       XK_a,                       NULL,         focusstack,             {.i = -1 } },
+	{ KeyPress,    0,                              XK_d,                       &layouts[3],  focusstack,             {.i = +1 } },
+	{ KeyPress,    0,                              XK_a,                       &layouts[3],  focusstack,             {.i = -1 } },
+	{ KeyPress,    Mod4Mask,                       XK_Tab,                     NULL,         zoom,                   {0} },
+	{ KeyPress,    0,                              XK_Tab,                     &layouts[3],  zoom,                   {0} },
 	// nav tags
-	{ KeyPress,    MODKEY|ShiftMask,             XK_q,                       NULL,         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
-	{ KeyPress,    MODKEY|ShiftMask,             XK_e,                       NULL,         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
-	{ KeyPress,    MODKEY,                       XK_q,                       NULL,         shiftview,              { .i = -1 } },
-	{ KeyPress,    MODKEY,                       XK_e,                       NULL,         shiftview,              { .i = +1 } },
-	{ KeyPress,    0,                            XK_q,                       &layouts[3],  shiftview,              { .i = -1 } },
-	{ KeyPress,    0,                            XK_e,                       &layouts[3],  shiftview,              { .i = +1 } },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_q,                       NULL,         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_e,                       NULL,         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
+	{ KeyPress,    Mod4Mask,                       XK_q,                       NULL,         shiftview,              { .i = -1 } },
+	{ KeyPress,    Mod4Mask,                       XK_e,                       NULL,         shiftview,              { .i = +1 } },
+	{ KeyPress,    0,                              XK_q,                       &layouts[3],  shiftview,              { .i = -1 } },
+	{ KeyPress,    0,                              XK_e,                       &layouts[3],  shiftview,              { .i = +1 } },
 	TAGKEYS(                        XK_1,                                  0)
 	TAGKEYS(                        XK_2,                                  1)
 	TAGKEYS(                        XK_3,                                  2)
 	TAGKEYS(                        XK_4,                                  3)
 	TAGKEYS(                        XK_5,                                  4)
 	// kills
-	{ KeyPress,    MODKEY,                       XK_c,                       NULL,         killclient,             {0} },
-	{ KeyPress,    0,                            XK_c,                       &layouts[3],  killclient,             {0} },
-	{ KeyPress,    MODKEY|ShiftMask,             XK_c,                       NULL,         quit,                   {0} },
+	{ KeyPress,    Mod4Mask,                       XK_c,                       NULL,         killclient,             {0} },
+	{ KeyPress,    0,                              XK_c,                       &layouts[3],  killclient,             {0} },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_c,                       NULL,         quit,                   {0} },
 	// layouts
-	{ KeyPress,    MODKEY,                       XK_x,                       NULL,         swaplayout,             { .v = &layouts_swap } },
-	{ KeyRelease,  0,                            XK_Super_L,                 NULL,         setlayout,              { .v = &layouts[3] } },
+	{ KeyPress,    Mod4Mask,                       XK_x,                       NULL,         swaplayout,             { .v = &layouts_swap } },
+	{ KeyRelease,  0,                              XK_Super_L,                 NULL,         setlayout,              { .v = &layouts[3] } },
 	// mons
-	{ KeyPress,    MODKEY,                       XK_comma,                   NULL,         focusmon,               {.i = -1 } },
-	{ KeyPress,    MODKEY,                       XK_period,                  NULL,         focusmon,               {.i = +1 } },
-	{ KeyPress,    MODKEY|ShiftMask,             XK_comma,                   NULL,         tagmon,                 {.i = -1 } },
-	{ KeyPress,    MODKEY|ShiftMask,             XK_period,                  NULL,         tagmon,                 {.i = +1 } },
+	{ KeyPress,    Mod4Mask,                       XK_comma,                   NULL,         focusmon,               {.i = -1 } },
+	{ KeyPress,    Mod4Mask,                       XK_period,                  NULL,         focusmon,               {.i = +1 } },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_comma,                   NULL,         tagmon,                 {.i = -1 } },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_period,                  NULL,         tagmon,                 {.i = +1 } },
 	// floating
-	{ KeyPress,    MODKEY,                       XK_Up,                      NULL,         togglefloating,         {0} },
-	{ KeyPress,    MODKEY,                       XK_Left,                    NULL,         floatpos,               {.v = "0% 50% 50% 100%" } },
-	{ KeyPress,    MODKEY,                       XK_Right,                   NULL,         floatpos,               {.v = "100% 50% 50% 100%" } },
+	{ KeyPress,    Mod4Mask,                       XK_Up,                      NULL,         togglefloating,         {0} },
+	{ KeyPress,    Mod4Mask,                       XK_Left,                    NULL,         floatpos,               {.v = "0% 50% 50% 100%" } },
+	{ KeyPress,    Mod4Mask,                       XK_Right,                   NULL,         floatpos,               {.v = "100% 50% 50% 100%" } },
 };
 
 /* button definitions */
@@ -272,19 +275,19 @@ static const Button buttons[] = {
 	{ ClkWinTitle,          0,                   Button3,       NULL,            resizemouse,    {0} },
 	{ ClkWinTitle,          0,                   Button4,       NULL,            focusstack,     {.i = -1} },
 	{ ClkWinTitle,          0,                   Button5,       NULL,            focusstack,     {.i = +1} },
-	{ ClkClientWin,         MODKEY,              Button1,       NULL,            moveorplace,    {.i = 1} },
-	{ ClkClientWin,         MODKEY,              Button2,       NULL,            togglefloating, {0} },
-	{ ClkClientWin,         MODKEY,              Button3,       NULL,            resizemouse,    {0} },
+	{ ClkClientWin,         Mod4Mask,              Button1,       NULL,            moveorplace,    {.i = 1} },
+	{ ClkClientWin,         Mod4Mask,              Button2,       NULL,            togglefloating, {0} },
+	{ ClkClientWin,         Mod4Mask,              Button3,       NULL,            resizemouse,    {0} },
 	{ ClkClientWin,         0,                   Button1,       &layouts[3],     setlayout,      { .v = &layouts[2] } },
 	{ ClkClientWin,         0,                   Button2,       &layouts[3],     killclient,     {0} },
 	{ ClkClientWin,         0,                   Button3,       &layouts[3],     setlayout,      { .v = &layouts[2] } },
-	{ ClkClientWin,         MODKEY|ShiftMask,    Button3,       NULL,            dragcfact,      {0} },
-	{ ClkClientWin,         MODKEY|ShiftMask,    Button1,       NULL,            dragmfact,      {0} },
+	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button3,       NULL,            dragcfact,      {0} },
+	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button1,       NULL,            dragmfact,      {0} },
 	{ ClkTagBar,            0,                   Button1,       NULL,            view,           {0} },
 	{ ClkTagBar,            0,                   Button3,       NULL,            toggleview,     {0} },
 	{ ClkTagBar,            0,                   Button4,       NULL,            shiftview,       { .i = -1 } },
 	{ ClkTagBar,            0,                   Button5,       NULL,            shiftview,       { .i = +1 } },
-	{ ClkTagBar,            MODKEY,              Button1,       NULL,            tag,            {0} },
-	{ ClkTagBar,            MODKEY,              Button3,       NULL,            toggletag,      {0} },
+	{ ClkTagBar,            Mod4Mask,              Button1,       NULL,            tag,            {0} },
+	{ ClkTagBar,            Mod4Mask,              Button3,       NULL,            toggletag,      {0} },
 };
 

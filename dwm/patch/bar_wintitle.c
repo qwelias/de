@@ -1,5 +1,5 @@
 static const double client_indicators_width = 0.30;
-static const double client_indicators_spacing = 1;
+static const double client_indicators_spacing = 0.7;
 static const unsigned int client_indicators_height_active = 2;
 static const unsigned int client_indicators_height_other = 1;
 static const unsigned int floating_indicator_h = 2;
