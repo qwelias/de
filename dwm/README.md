@@ -39,3 +39,6 @@ based on [bakkeby/dwm-flexipatch](github.com/bakkeby/dwm-flexipatch)
 
 ## TODO
 - I really don't like that audio updates are done via external commands, ideally we should be able to connect to pipewire and listen to or emit updates, but I have skill issues for now
+- need an indicator for urgent windows on the current tag in monocle
+- the overview mode needs to scale down windows instead of resizing them, but it's a big one
+- dragcfact is broken

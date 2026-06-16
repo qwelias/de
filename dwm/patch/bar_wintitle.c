@@ -1,14 +1,16 @@
-static const unsigned int client_indicators_width = 600;
-static const unsigned int client_indicators_spacing = 5;
+static const double client_indicators_width = 0.30;
+static const double client_indicators_spacing = 1;
 static const unsigned int client_indicators_height_active = 2;
 static const unsigned int client_indicators_height_other = 1;
+static const unsigned int floating_indicator_h = 2;
 
 static void
 draw_client_indicators(Bar *bar) {
 	Client *c = bar->mon->clients;
 	unsigned int cn = 0;
 	unsigned int cliw = 0;
-	unsigned int clis = bar->bw/2 - client_indicators_width/2;
+	unsigned int w = bar->bw*client_indicators_width;
+	unsigned int start = bar->bw/2 - w/2;
 	unsigned int active = 0;
 
 	while (c) {
@@ -17,7 +19,7 @@ draw_client_indicators(Bar *bar) {
 	}
 	if (!cn || cn > 50) return;
 
-	cliw = (client_indicators_width - cn*client_indicators_spacing) / cn;
+	cliw = (w - (cn - 1)*client_indicators_spacing*fonth) / cn;
 	c = bar->mon->clients;
 	cn = 0;
 	while (c) {
@@ -25,7 +27,7 @@ draw_client_indicators(Bar *bar) {
 		if (ISVISIBLE(c)) {
 			drw_rect(
 				drw,
-				clis + cliw*cn + client_indicators_spacing*cn, bar->by,
+				start + cliw*cn + client_indicators_spacing*cn*fonth, bar->by,
 				cliw, active ? client_indicators_height_active : client_indicators_height_other,
 				1, 0
 			);
@@ -33,6 +35,20 @@ draw_client_indicators(Bar *bar) {
 		}
 		c = c->next;
 	} 
+}
+
+static void
+draw_floating_indicator(Bar *bar) {
+	int w = bar->bw*client_indicators_width/2;
+	int x = bar->bw/2 - w/2;
+	int y = bar->by + bar->bh - floating_indicator_h;
+
+	drw_rect(
+		drw,
+		x, y,
+		w, floating_indicator_h,
+		1, 0
+	);
 }
 
 int
@@ -60,7 +76,9 @@ draw_wintitle(Bar *bar, BarArg *a)
 
 	drw_text(drw, a->x + fonth, a->y, a->w - fonth*2, a->h, 0, c->name, 0, False);
 
-	drawstateindicator(m, c, 1, a->x + fonth/2, a->y, a->w, a->h, 0, 0, c->isfixed);
+	if (c->isfloating) {
+		draw_floating_indicator(bar);
+	}
 	draw_client_indicators(bar);
 	return 1;
 }

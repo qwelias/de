@@ -90,13 +90,3 @@ drawindicator(Monitor *m, Client *c, unsigned int occ, int x, int y, int w, int 
 		break;
 	}
 }
-
-void
-drawstateindicator(Monitor *m, Client *c, unsigned int occ, int x, int y, int w, int h, unsigned int tag, int filled, int invert)
-{
-	if (c->isfloating)
-		drawindicator(m, c, occ, x, y, w, h, tag, filled, invert, floatindicatortype);
-	else
-		drawindicator(m, c, occ, x, y, w, h, tag, filled, invert, tiledindicatortype);
-}
-

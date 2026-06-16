@@ -22,10 +22,6 @@ static int floatposgrid_x                = 5;  /* float grid columns */
 static int floatposgrid_y                = 5;  /* float grid rows */
 static const int showsystray             = 1;   /* 0 means no systray */
 
-/* Indicators: see patch/bar_indicators.h for options */
-static int tagindicatortype              = INDICATOR_TOP_LEFT_SQUARE;
-static int tiledindicatortype            = INDICATOR_NONE;
-static int floatindicatortype            = INDICATOR_TOP_LEFT_SQUARE;
 static const char *fonts[]               = { "Ubuntu:size=11:style=Bold", "Noto Sans:size=11", "Symbols Nerd Font:size=15", "Noto Sans CJK SC:size=11", "Noto Color Emoji:pixelsize=11:antialias=true:autohint=true" };
 static const char dmenufont[]            = "Ubuntu Mono:size=18";
 
@@ -267,6 +263,8 @@ static const Key keys[] = {
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
 	/* click                event mask           button         layout           function        argument */
+	{ ClkLtSymbol,          0,                   Button4,       NULL,            focusstack,     {.i = -1 } },
+	{ ClkLtSymbol,          0,                   Button5,       NULL,            focusstack,     {.i = +1 } },
 	{ ClkLtSymbol,          0,                   Button1,       NULL,            setlayout,      {.v = &layouts[3] } },
 	{ ClkLtSymbol,          0,                   Button3,       NULL,            swaplayout,     {.v = (const Layout *[]) { &layouts[2], &layouts[0] } } },
 	{ ClkWinTitle,          0,                   Button1,       NULL,            moveorplace,    {.i = 1} },
@@ -275,7 +273,7 @@ static const Button buttons[] = {
 	{ ClkWinTitle,          0,                   Button4,       NULL,            focusstack,     {.i = -1} },
 	{ ClkWinTitle,          0,                   Button5,       NULL,            focusstack,     {.i = +1} },
 	{ ClkClientWin,         MODKEY,              Button1,       NULL,            moveorplace,    {.i = 1} },
-	{ ClkClientWin,         MODKEY,              Button2,       NULL,            killclient,     {0} },
+	{ ClkClientWin,         MODKEY,              Button2,       NULL,            togglefloating, {0} },
 	{ ClkClientWin,         MODKEY,              Button3,       NULL,            resizemouse,    {0} },
 	{ ClkClientWin,         0,                   Button1,       &layouts[3],     setlayout,      { .v = &layouts[2] } },
 	{ ClkClientWin,         0,                   Button2,       &layouts[3],     killclient,     {0} },

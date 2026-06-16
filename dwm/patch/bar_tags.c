@@ -36,7 +36,7 @@ draw_tags(Bar *bar, BarArg *a)
 			: SchemeTagsNorm
 		]);
 		drw_text(drw, x, a->y, w, a->h, lpad, icon, invert, False);
-		drawindicator(m, NULL, occ, x, a->y, w, a->h, i, is_tag_selected, invert, tagindicatortype);
+		drawindicator(m, NULL, occ, x, a->y, w, a->h, i, is_tag_selected, invert, INDICATOR_TOP_LEFT_SQUARE);
 		if (is_tag_selected) drawindicator(m, NULL, 1, x, a->y, w, a->h, 0, 1, invert, INDICATOR_BOTTOM_BAR);
 		else drawindicator(m, NULL, 1, x, a->y, w, a->h, 0, 1, invert, INDICATOR_BOTTOM_BAR_SLIM);
 		x += w;
