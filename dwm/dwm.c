@@ -1314,7 +1314,7 @@ grabbuttons(Client *c, int focused)
 		unsigned int i, j;
 		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
-		if (selmon->lt[selmon->sellt] == &layouts[3]) {
+		if (selmon->lt[selmon->sellt] == &speciallt) {
 			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
 				BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
 			return;
@@ -1344,7 +1344,7 @@ grabkeys(void)
 		KeySym *syms;
 
 		XUngrabKey(dpy, AnyKey, AnyModifier, root);
-		if (selmon->lt[selmon->sellt] == &layouts[3]) {
+		if (selmon->lt[selmon->sellt] == &speciallt) {
 			XGrabKey(dpy, AnyKey,
 				AnyModifier,
 				root, True,

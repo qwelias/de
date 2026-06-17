@@ -168,7 +168,7 @@ static const Layout layouts[] = {
 
 /* key definitions */
 #define TAGKEYS(KEY,TAG) \
-	{ KeyPress,    0,                            KEY,   &layouts[3],   view,           {.ui = 1 << TAG} }, \
+	{ KeyPress,    0,                            KEY,   &speciallt,   view,           {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask,                       KEY,   NULL,          view,           {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask|ControlMask,           KEY,   NULL,          toggleview,     {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask|ShiftMask,             KEY,   NULL,          tag,            {.ui = 1 << TAG} }, \
@@ -228,17 +228,17 @@ static const Key keys[] = {
 	{ KeyPress,    Mod4Mask,                       XK_b,                       NULL,         togglebar,              {0} },
 	{ KeyPress,    Mod4Mask,                       XK_d,                       NULL,         focusstack,             {.i = +1 } },
 	{ KeyPress,    Mod4Mask,                       XK_a,                       NULL,         focusstack,             {.i = -1 } },
-	{ KeyPress,    0,                              XK_d,                       &layouts[3],  focusstack,             {.i = +1 } },
-	{ KeyPress,    0,                              XK_a,                       &layouts[3],  focusstack,             {.i = -1 } },
+	{ KeyPress,    0,                              XK_d,                       &speciallt,  focusstack,             {.i = +1 } },
+	{ KeyPress,    0,                              XK_a,                       &speciallt,  focusstack,             {.i = -1 } },
 	{ KeyPress,    Mod4Mask,                       XK_Tab,                     NULL,         zoom,                   {0} },
-	{ KeyPress,    0,                              XK_Tab,                     &layouts[3],  zoom,                   {0} },
+	{ KeyPress,    0,                              XK_Tab,                     &speciallt,  zoom,                   {0} },
 	// nav tags
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_q,                       NULL,         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_e,                       NULL,         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
 	{ KeyPress,    Mod4Mask,                       XK_q,                       NULL,         shiftview,              { .i = -1 } },
 	{ KeyPress,    Mod4Mask,                       XK_e,                       NULL,         shiftview,              { .i = +1 } },
-	{ KeyPress,    0,                              XK_q,                       &layouts[3],  shiftview,              { .i = -1 } },
-	{ KeyPress,    0,                              XK_e,                       &layouts[3],  shiftview,              { .i = +1 } },
+	{ KeyPress,    0,                              XK_q,                       &speciallt,  shiftview,              { .i = -1 } },
+	{ KeyPress,    0,                              XK_e,                       &speciallt,  shiftview,              { .i = +1 } },
 	TAGKEYS(                        XK_1,                                  0)
 	TAGKEYS(                        XK_2,                                  1)
 	TAGKEYS(                        XK_3,                                  2)
@@ -246,11 +246,11 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_5,                                  4)
 	// kills
 	{ KeyPress,    Mod4Mask,                       XK_c,                       NULL,         killclient,             {0} },
-	{ KeyPress,    0,                              XK_c,                       &layouts[3],  killclient,             {0} },
+	{ KeyPress,    0,                              XK_c,                       &speciallt,  killclient,             {0} },
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_c,                       NULL,         quit,                   {0} },
 	// layouts
 	{ KeyPress,    Mod4Mask,                       XK_x,                       NULL,         swaplayout,             { .v = &layouts_swap } },
-	{ KeyRelease,  0,                              XK_Super_L,                 NULL,         setlayout,              { .v = &layouts[3] } },
+	{ KeyRelease,  0,                              XK_Super_L,                 NULL,         setlayout,              { .v = &speciallt } },
 	// mons
 	{ KeyPress,    Mod4Mask,                       XK_comma,                   NULL,         focusmon,               {.i = -1 } },
 	{ KeyPress,    Mod4Mask,                       XK_period,                  NULL,         focusmon,               {.i = +1 } },
@@ -268,7 +268,7 @@ static const Button buttons[] = {
 	/* click                event mask           button         layout           function        argument */
 	{ ClkLtSymbol,          0,                   Button4,       NULL,            focusstack,     {.i = -1 } },
 	{ ClkLtSymbol,          0,                   Button5,       NULL,            focusstack,     {.i = +1 } },
-	{ ClkLtSymbol,          0,                   Button1,       NULL,            setlayout,      {.v = &layouts[3] } },
+	{ ClkLtSymbol,          0,                   Button1,       NULL,            setlayout,      {.v = &speciallt } },
 	{ ClkLtSymbol,          0,                   Button3,       NULL,            swaplayout,     {.v = (const Layout *[]) { &layouts[2], &layouts[0] } } },
 	{ ClkWinTitle,          0,                   Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkWinTitle,          0,                   Button2,       NULL,            killclient, {0} },
@@ -278,9 +278,9 @@ static const Button buttons[] = {
 	{ ClkClientWin,         Mod4Mask,              Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkClientWin,         Mod4Mask,              Button2,       NULL,            togglefloating, {0} },
 	{ ClkClientWin,         Mod4Mask,              Button3,       NULL,            resizemouse,    {0} },
-	{ ClkClientWin,         0,                   Button1,       &layouts[3],     setlayout,      { .v = &layouts[2] } },
-	{ ClkClientWin,         0,                   Button2,       &layouts[3],     killclient,     {0} },
-	{ ClkClientWin,         0,                   Button3,       &layouts[3],     setlayout,      { .v = &layouts[2] } },
+	{ ClkClientWin,         0,                   Button1,       &speciallt,     setlayout,      { .v = &layouts[2] } },
+	{ ClkClientWin,         0,                   Button2,       &speciallt,     killclient,     {0} },
+	{ ClkClientWin,         0,                   Button3,       &speciallt,     setlayout,      { .v = &layouts[2] } },
 	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button3,       NULL,            dragcfact,      {0} },
 	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button1,       NULL,            dragmfact,      {0} },
 	{ ClkTagBar,            0,                   Button1,       NULL,            view,           {0} },
