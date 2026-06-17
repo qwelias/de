@@ -158,17 +158,18 @@ static const int refreshrate_placemouse = 60; /* refresh rate (per second) for p
 static const int refreshrate_dragmfact = 60; /* refresh rate (per second) for dragmfact */
 static const int refreshrate_dragcfact = 60; /* refresh rate (per second) for dragcfact */
 
+static const Layout speciallt = { ": : :",      gaplessgrid };
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[ ]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[    ]",      monocle },
-	{ ": : :",      gaplessgrid },
+	speciallt,
 };
 
 /* key definitions */
 #define TAGKEYS(KEY,TAG) \
-	{ KeyPress,    0,                            KEY,   &speciallt,   view,           {.ui = 1 << TAG} }, \
+	{ KeyPress,    0,                              KEY,   &speciallt,   view,           {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask,                       KEY,   NULL,          view,           {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask|ControlMask,           KEY,   NULL,          toggleview,     {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask|ShiftMask,             KEY,   NULL,          tag,            {.ui = 1 << TAG} }, \
@@ -269,7 +270,7 @@ static const Button buttons[] = {
 	{ ClkLtSymbol,          0,                   Button4,       NULL,            focusstack,     {.i = -1 } },
 	{ ClkLtSymbol,          0,                   Button5,       NULL,            focusstack,     {.i = +1 } },
 	{ ClkLtSymbol,          0,                   Button1,       NULL,            setlayout,      {.v = &speciallt } },
-	{ ClkLtSymbol,          0,                   Button3,       NULL,            swaplayout,     {.v = (const Layout *[]) { &layouts[2], &layouts[0] } } },
+	{ ClkLtSymbol,          0,                   Button3,       NULL,            swaplayout,     {.v = &layouts_swap } },
 	{ ClkWinTitle,          0,                   Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkWinTitle,          0,                   Button2,       NULL,            killclient, {0} },
 	{ ClkWinTitle,          0,                   Button3,       NULL,            resizemouse,    {0} },
