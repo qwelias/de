@@ -53,7 +53,7 @@ int click_bat(Bar *bar, Arg *arg, BarArg *a)
 void bat_update(void) {
     FILE *f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
     if (!f) {
-        fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/capacity)");
+        fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/capacity)\n");
         bat_txt[0] = 0;
         return;
     }
@@ -68,7 +68,7 @@ void bat_update(void) {
 
     f = fopen("/sys/class/power_supply/BAT0/status", "r");
     if (!f) {
-        fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/status)");
+        fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/status)\n");
         snprintf(bat_txt, 5, " ES ");
         return;
     }
@@ -82,7 +82,7 @@ void bat_update(void) {
 
     f = fopen("/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference", "r");
     if (!f) {
-        fprintf(stderr, "cannot fopen(/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference)");
+        fprintf(stderr, "cannot fopen(/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference)\n");
         snprintf(bat_txt, 5, " E ");
         return;
     }

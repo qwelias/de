@@ -770,6 +770,7 @@ clientmessage(XEvent *e)
 void
 configure(Client *c)
 {
+	// fprintf(stderr, "configure: %s\n", c->name);
 	XConfigureEvent ce;
 
 	ce.type = ConfigureNotify;
@@ -2360,6 +2361,7 @@ togglefloating(const Arg *arg)
 	if (c->isfullscreen) /* no support for fullscreen windows */
 		return;
 	c->isfloating = !c->isfloating || c->isfixed;
+	resizeclient(c, c->x, c->y, c->w, c->h); // hack to make sure borders update correctly
 	if (c->isfloating)
 		XSetWindowBorder(dpy, c->win, scheme[SchemeSel][ColFloat].pixel);
 	else
@@ -2368,7 +2370,6 @@ togglefloating(const Arg *arg)
 		resize(c, c->x, c->y, c->w, c->h, 0);
 	}
 	arrange(c->mon);
-
 }
 
 void
