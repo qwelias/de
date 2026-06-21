@@ -208,6 +208,7 @@ struct Client {
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	int iscentered;
 	int beingmoved;
+	int iskilling;
 	Client *next;
 	Client *snext;
 	Monitor *mon;
@@ -1442,7 +1443,7 @@ killclient(const Arg *arg)
 	if (!c)
 		return;
 
-	if (!sendevent(c->win, wmatom[WMDelete], NoEventMask, wmatom[WMDelete], CurrentTime, 0, 0, 0))
+	if (c->iskilling || !sendevent(c->win, wmatom[WMDelete], NoEventMask, wmatom[WMDelete], CurrentTime, 0, 0, 0))
 	{
 		XGrabServer(dpy);
 		XSetErrorHandler(xerrordummy);
@@ -1451,6 +1452,8 @@ killclient(const Arg *arg)
 		XSync(dpy, False);
 		XSetErrorHandler(xerror);
 		XUngrabServer(dpy);
+	} else {
+		c->iskilling = 1;
 	}
 }
 
