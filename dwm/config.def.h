@@ -223,6 +223,8 @@ static const Key keys[] = {
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_l,                       NULL,         spawn,                  {.v = suspend } },
 	{ KeyPress,    0,                              XK_Print,                   NULL,         spawn,                  {.v = maimss } },
 	{ KeyPress,    ShiftMask,                      XK_Print,                   NULL,         spawn,                  {.v = maimocr } },
+	{ KeyPress,    Mod4Mask,                       XK_p,                       NULL,         spawn,                  {.v = maimss } },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_p,                       NULL,         spawn,                  {.v = maimocr } },
 	{ KeyPress,    ControlMask|Mod1Mask,           XK_x,                       NULL,         spawn,                  {.v = switchsink } },
 
 	// nav clients
