@@ -5,7 +5,7 @@
 #include <string.h>
 
 static double bat_width = 2.3;
-static char bat_txt[8] = {0};
+static char bat_txt[8] = "XX";
 static unsigned int bat_color = 1;
 static unsigned int bat_perfi = 0;
 static char wasdischarging = 0;
@@ -51,6 +51,8 @@ int click_bat(Bar *bar, Arg *arg, BarArg *a)
 }
 
 void bat_update(void) {
+    if (!bat_txt[0]) return;
+
     FILE *f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
     if (!f) {
         fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/capacity)\n");
@@ -69,7 +71,7 @@ void bat_update(void) {
     f = fopen("/sys/class/power_supply/BAT0/status", "r");
     if (!f) {
         fprintf(stderr, "cannot fopen(/sys/class/power_supply/BAT0/status)\n");
-        snprintf(bat_txt, 5, " ES ");
+        snprintf(bat_txt, 5, "ES");
         return;
     }
     char status[3] = "xx";
@@ -83,7 +85,7 @@ void bat_update(void) {
     f = fopen("/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference", "r");
     if (!f) {
         fprintf(stderr, "cannot fopen(/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference)\n");
-        snprintf(bat_txt, 5, " E ");
+        snprintf(bat_txt, 5, "EP");
         return;
     }
     char perf[3] = "xx";
@@ -119,7 +121,7 @@ void bat_update(void) {
     else if (!strncmp(perf, "pe", 2)) bat_perfi = 2;
 
     snprintf(bat_txt, sizeof(bat_txt),
-        " %02d ",
+        "%02d",
         (int)cap
     );
 }
