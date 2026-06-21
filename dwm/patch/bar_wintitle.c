@@ -1,36 +1,43 @@
 static const double client_indicators_width = 0.30;
 static const double client_indicators_spacing = 0.7;
-static const unsigned int client_indicators_height_active = 2;
-static const unsigned int client_indicators_height_other = 1;
+static const unsigned int client_indicators_active_offset = 1;
+static const unsigned int client_indicators_size = 1;
 static const unsigned int floating_indicator_h = 2;
 
 static void
 draw_client_indicators(Bar *bar) {
 	Client *c = bar->mon->clients;
 	unsigned int cn = 0;
-	unsigned int cliw = 0;
-	unsigned int w = bar->bw*client_indicators_width;
-	unsigned int start = bar->bw/2 - w/2;
+	unsigned int cliw = bar->bw*client_indicators_width;
+	unsigned int start = bar->bw/2 - cliw/2;
 	unsigned int active = 0;
+	unsigned int x = 0;
+	unsigned int y = bar->by;
+	unsigned int w = 0;
+	unsigned int h = 0;
 
 	while (c) {
 		if (ISVISIBLE(c)) cn++;
 		c = c->next;
 	}
-	if (!cn || cn > 50) return;
+	if (!cn || cn > 16) return;
 
-	cliw = (w - (cn - 1)*client_indicators_spacing*fonth) / cn;
+	cliw = (cliw - (cn - 1)*client_indicators_spacing*fonth) / cn;
 	c = bar->mon->clients;
 	cn = 0;
 	while (c) {
-		active = bar->mon->sel == c;
 		if (ISVISIBLE(c)) {
-			drw_rect(
-				drw,
-				start + cliw*cn + client_indicators_spacing*cn*fonth, bar->by,
-				cliw, active ? client_indicators_height_active : client_indicators_height_other,
-				1, 0
-			);
+			active = bar->mon->sel == c;
+			x = start + cliw*cn + client_indicators_spacing*cn*fonth;
+			w = cliw;
+			h = client_indicators_size;
+			if (active) {
+				x -= client_indicators_active_offset;
+				w += client_indicators_active_offset*2;
+				h += client_indicators_active_offset;
+			}
+
+			drw_rect(drw, x, y, w, h, 1, 0);
 			cn++;
 		}
 		c = c->next;
