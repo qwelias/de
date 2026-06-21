@@ -219,8 +219,8 @@ static const Key keys[] = {
 	// spawn
 	{ KeyPress,    Mod4Mask,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
 	{ KeyPress,    Mod4Mask,                       XK_t,                       NULL,         spawn,                  {.v = termcmd } },
-	{ KeyPress,    Mod4Mask,                       XK_l,                       NULL,         spawn,                  {.v = lock } },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_l,                       NULL,         spawn,                  {.v = suspend } },
+	{ KeyPress,    Mod4Mask,                       XK_z,                       NULL,         spawn,                  {.v = lock } },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_z,                       NULL,         spawn,                  {.v = suspend } },
 	{ KeyPress,    0,                              XK_Print,                   NULL,         spawn,                  {.v = maimss } },
 	{ KeyPress,    ShiftMask,                      XK_Print,                   NULL,         spawn,                  {.v = maimocr } },
 	{ KeyPress,    Mod4Mask,                       XK_p,                       NULL,         spawn,                  {.v = maimss } },
