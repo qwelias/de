@@ -104,6 +104,7 @@ static const Rule rules[] = {
 	/* xprop(1):
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
+	 *	WM_NAME(STRING) != nottitle
 	 *	WM_WINDOW_ROLE(STRING) = role
 	 *	_NET_WM_WINDOW_TYPE(ATOM) = wintype
 	 */
@@ -112,6 +113,7 @@ static const Rule rules[] = {
 	{ .monitor = -1, .title = "TIMES", .isfloating = 1, .floatpos = "88%   0% 365W 210H"},
 	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1, .floatpos = "50%   0%"},
 	{ .monitor = -1, .title = "Karing", .isfloating = 1, .floatpos = "50%   0%"},
+	{ .monitor = -1, .class = "steam", .nottitle = "Steam", .isfloating = 1, .floatpos = "50%   0%"},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1, .iscentered = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1, .iscentered = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_TOOLBAR", .isfloating = 1},
@@ -153,10 +155,9 @@ static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] 
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
-static const int refreshrate = 20;  /* refresh rate (per second) for client move/resize */
-static const int refreshrate_placemouse = 60; /* refresh rate (per second) for placemouse */
-static const int refreshrate_dragmfact = 60; /* refresh rate (per second) for dragmfact */
-static const int refreshrate_dragcfact = 60; /* refresh rate (per second) for dragcfact */
+static const int refreshrate_resize = 6;  /* refresh rate (per second) for client resize */
+static const int refreshrate_dragmfact = 6; /* refresh rate (per second) for dragmfact */
+static const int refreshrate_dragcfact = 6; /* refresh rate (per second) for dragcfact */
 
 static const Layout speciallt = { ": : :",      gaplessgrid };
 static const Layout layouts[] = {

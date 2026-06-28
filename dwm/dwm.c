@@ -247,6 +247,7 @@ typedef struct {
 	const char *class;
 	const char *instance;
 	const char *title;
+	const char *nottitle;
 	const char *wintype;
 	unsigned int tags;
 	int iscentered;
@@ -425,11 +426,13 @@ applyrules(Client *c)
 
 	for (i = 0; i < LENGTH(rules); i++) {
 		r = &rules[i];
-		if ((!r->title || strstr(c->name, r->title))
-		&& (!r->class || strstr(class, r->class))
-		&& (!r->instance || strstr(instance, r->instance))
-		&& (!r->wintype || wintype == XInternAtom(dpy, r->wintype, False)))
-		{
+		if (
+			(!r->title || strstr(c->name, r->title))
+			&& (!r->nottitle || !strstr(c->name, r->nottitle))
+			&& (!r->class || strstr(class, r->class))
+			&& (!r->instance || strstr(instance, r->instance))
+			&& (!r->wintype || wintype == XInternAtom(dpy, r->wintype, False))
+		) {
 			c->iscentered = r->iscentered;
 			c->isfloating = r->isfloating;
 			c->tags |= r->tags;
@@ -1627,8 +1630,6 @@ movemouse(const Arg *arg)
 			handler[ev.type](&ev);
 			break;
 		case MotionNotify:
-			if ((ev.xmotion.time - lasttime) <= (1000 / refreshrate))
-				continue;
 			lasttime = ev.xmotion.time;
 
 			nx = ocx + (ev.xmotion.x - x);
@@ -1837,7 +1838,7 @@ resizemouse(const Arg *arg)
 			handler[ev.type](&ev);
 			break;
 		case MotionNotify:
-			if ((ev.xmotion.time - lasttime) <= (1000 / refreshrate))
+			if ((ev.xmotion.time - lasttime) <= (1000 / refreshrate_resize))
 				continue;
 			lasttime = ev.xmotion.time;
 
