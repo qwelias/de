@@ -203,6 +203,7 @@ struct Client {
 	unsigned int idx;
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
+	int issteam;
 	int bw, oldbw;
 	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
@@ -247,7 +248,6 @@ typedef struct {
 	const char *class;
 	const char *instance;
 	const char *title;
-	const char *nottitle;
 	const char *wintype;
 	unsigned int tags;
 	int iscentered;
@@ -348,6 +348,7 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
+static int streqeq(const char* a, const char* b);
 
 /* bar functions */
 
@@ -406,6 +407,13 @@ static Window root, wmcheckwin;
 #include "patch/include.c"
 
 /* function implementations */
+int
+streqeq(const char* a, const char* b) {
+	int i = 0;
+	while (a[i] && a[i] == b[i]) i++;
+	return a[i] == b[i];
+}
+
 void
 applyrules(Client *c)
 {
@@ -424,11 +432,17 @@ applyrules(Client *c)
 	instance = ch.res_name  ? ch.res_name  : broken;
 	wintype  = getatomprop(c, netatom[NetWMWindowType], XA_ATOM);
 
+	// fprintf(stderr, "applyrules: %s : %s : %s\n", instance, class, c->name);
+	if (strstr(class, "steam_app_")) {
+		c->issteam = 1;
+	} else if (streqeq(instance, "steamwebhelper") && streqeq(class, "steam") && !streqeq(c->name, "Steam")) {
+		c->isfloating = 1;
+	}
+
 	for (i = 0; i < LENGTH(rules); i++) {
 		r = &rules[i];
 		if (
 			(!r->title || strstr(c->name, r->title))
-			&& (!r->nottitle || !strstr(c->name, r->nottitle))
 			&& (!r->class || strstr(class, r->class))
 			&& (!r->instance || strstr(instance, r->instance))
 			&& (!r->wintype || wintype == XInternAtom(dpy, r->wintype, False))
@@ -786,6 +800,7 @@ configure(Client *c)
 	ce.width = c->w;
 	ce.height = c->h;
 	ce.border_width = c->bw;
+	// fprintf(stderr, "configure: %d : %d : %d : %d %s\n", c->x, c->y, c->w, c->h, c->name);
 
 	if (noborder(c)) {
 		ce.width += c->bw * 2;
@@ -839,30 +854,38 @@ configurerequest(XEvent *e)
 		return;
 
 	if ((c = wintoclient(ev->window))) {
+		// fprintf(stderr, "configurerequest: %d : %d : %s\n", c->issteam, c->isfloating, c->name);
 		if (ev->value_mask & CWBorderWidth)
 			c->bw = ev->border_width;
 		else if (c->isfloating || !selmon->lt[selmon->sellt]->arrange) {
 			m = c->mon;
-			if (ev->value_mask & CWX) {
-				c->oldx = c->x;
-				c->x = m->mx + ev->x;
+			if (!c->issteam) {
+				if (ev->value_mask & CWX) {
+					c->oldx = c->x;
+					c->x = m->mx + ev->x;
+				}
+				if (ev->value_mask & CWY) {
+					c->oldy = c->y;
+					c->y = m->my + ev->y;
+				}
+				if (ev->value_mask & CWWidth) {
+					c->oldw = c->w;
+					c->w = ev->width;
+				}
+				if (ev->value_mask & CWHeight) {
+					c->oldh = c->h;
+					c->h = ev->height;
+				}
 			}
-			if (ev->value_mask & CWY) {
-				c->oldy = c->y;
-				c->y = m->my + ev->y;
+			if (c->isfloating) {
+				if (!c->isfullscreen) {
+					c->x = m->wx + (m->ww / 2 - WIDTH(c) / 2);  /* center in x direction */
+					c->y = m->wy; /* top in y direction */
+				} else {
+					c->x = m->mx + (m->mw / 2 - WIDTH(c) / 2);  /* center in x direction */
+					c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
+				}
 			}
-			if (ev->value_mask & CWWidth) {
-				c->oldw = c->w;
-				c->w = ev->width;
-			}
-			if (ev->value_mask & CWHeight) {
-				c->oldh = c->h;
-				c->h = ev->height;
-			}
-			if ((c->x + c->w) > m->mx + m->mw && c->isfloating)
-				c->x = m->mx + (m->mw / 2 - WIDTH(c) / 2);  /* center in x direction */
-			if ((c->y + c->h) > m->my + m->mh && c->isfloating)
-				c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
 			if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
 				configure(c);
 			if (ISVISIBLE(c))
@@ -1516,7 +1539,7 @@ manage(Window w, XWindowAttributes *wa)
 
 	if (c->iscentered) {
 		c->x = c->mon->wx + (c->mon->ww - WIDTH(c)) / 2;
-		c->y = c->mon->wy + (c->mon->wh - HEIGHT(c)) / 2;
+		c->y = c->mon->wy;
 	}
 
 	if (getatomprop(c, netatom[NetWMState], XA_ATOM) == netatom[NetWMFullscreen])

@@ -104,18 +104,16 @@ static const Rule rules[] = {
 	/* xprop(1):
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
-	 *	WM_NAME(STRING) != nottitle
 	 *	WM_WINDOW_ROLE(STRING) = role
 	 *	_NET_WM_WINDOW_TYPE(ATOM) = wintype
 	 */
 	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1, .floatpos = "100%   0% 800W 300H"},
 	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1, .floatpos = "88%   0% 255W 550H"},
 	{ .monitor = -1, .title = "TIMES", .isfloating = 1, .floatpos = "88%   0% 365W 210H"},
-	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1, .floatpos = "50%   0%"},
-	{ .monitor = -1, .title = "Karing", .isfloating = 1, .floatpos = "50%   0%"},
-	{ .monitor = -1, .class = "steam", .nottitle = "Steam", .isfloating = 1, .floatpos = "50%   0%"},
-	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1, .iscentered = 1},
-	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1, .iscentered = 1},
+	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1},
+	{ .monitor = -1, .title = "Karing", .isfloating = 1},
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1},
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_TOOLBAR", .isfloating = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_SPLASH", .isfloating = 1}
 };
