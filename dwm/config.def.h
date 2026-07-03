@@ -64,8 +64,13 @@ static char hidselbgcolor[]              = "#222222";
 
 static char urgfgcolor[]                 = "#f8f8f2";
 static char urgbgcolor[]                 = "#f92672";
-static char urgbordercolor[]             = "#66d9ef";
-static char urgfloatcolor[]              = "#66d9ef";
+static char urgbordercolor[]             = "#f92672";
+static char urgfloatcolor[]              = "#f92672";
+
+static char selurgfgcolor[]              = "#f92672";
+static char selurgbgcolor[]              = "#3e3f37";
+static char selurgbordercolor[]          = "#e6db74";
+static char selurgfloatcolor[]           = "#e6db74";
 
 static char *colors[][ColCount] = {
 	/*                       fg                bg                border                float */
@@ -78,6 +83,7 @@ static char *colors[][ColCount] = {
 	[SchemeHidNorm]      = { hidnormfgcolor,   hidnormbgcolor,   c000000,              c000000 },
 	[SchemeHidSel]       = { hidselfgcolor,    hidselbgcolor,    c000000,              c000000 },
 	[SchemeUrg]          = { urgfgcolor,       urgbgcolor,       urgbordercolor,       urgfloatcolor },
+	[SchemeSelUrg]       = { selurgfgcolor,    selurgbgcolor,    selurgbordercolor,    selurgfloatcolor },
 };
 
 static const char *tags[] = { "1", "2", "3", "4", "5" };

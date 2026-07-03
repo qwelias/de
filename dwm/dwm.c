@@ -87,6 +87,7 @@ enum {
 	SchemeHidNorm,
 	SchemeHidSel,
 	SchemeUrg,
+	SchemeSelUrg,
 }; /* color schemes */
 
 enum {

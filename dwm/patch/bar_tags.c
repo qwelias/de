@@ -15,7 +15,7 @@ draw_tags(Bar *bar, BarArg *a)
 	const char *icon;
 	Client *c;
 	Monitor *m = bar->mon;
-	int is_tag_selected;
+	int is_tag_selected, is_tag_urg;
 
 	for (c = m->clients; c; c = c->next) {
 		occ |= c->tags;
@@ -24,15 +24,14 @@ draw_tags(Bar *bar, BarArg *a)
 	}
 	for (i = 0; i < LENGTH(tags); i++) {
 		is_tag_selected = m->tagset[m->seltags] & 1 << i;
+		is_tag_urg = urg & 1 << i;
 		icon = tags[i];
 		invert = 0;
 		w = tags_width*fonth;
 		lpad = (w - drw_fontset_getwidth(drw, icon, 0)) / 2;
 		drw_setscheme(drw, scheme[
-			is_tag_selected
-			? SchemeTagsSel
-			: urg & 1 << i
-			? SchemeUrg
+			is_tag_selected ? is_tag_urg ? SchemeSelUrg : SchemeTagsSel
+			: is_tag_urg ? SchemeUrg
 			: SchemeTagsNorm
 		]);
 		drw_text(drw, x, a->y, w, a->h, lpad, icon, invert, False);
