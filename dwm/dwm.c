@@ -204,7 +204,6 @@ struct Client {
 	unsigned int idx;
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
-	int issteam;
 	int bw, oldbw;
 	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
@@ -434,9 +433,7 @@ applyrules(Client *c)
 	wintype  = getatomprop(c, netatom[NetWMWindowType], XA_ATOM);
 
 	// fprintf(stderr, "applyrules: %s : %s : %s\n", instance, class, c->name);
-	if (strstr(class, "steam_app_")) {
-		c->issteam = 1;
-	} else if (streqeq(instance, "steamwebhelper") && streqeq(class, "steam") && !streqeq(c->name, "Steam")) {
+	if (streqeq(instance, "steamwebhelper") && streqeq(class, "steam") && !streqeq(c->name, "Steam")) {
 		c->isfloating = 1;
 	}
 
@@ -855,28 +852,26 @@ configurerequest(XEvent *e)
 		return;
 
 	if ((c = wintoclient(ev->window))) {
-		// fprintf(stderr, "configurerequest: %d : %d : %s\n", c->issteam, c->isfloating, c->name);
+		// fprintf(stderr, "configurerequest: %d : %s\n", c->isfloating, c->name);
 		if (ev->value_mask & CWBorderWidth)
 			c->bw = ev->border_width;
 		else if (c->isfloating || !selmon->lt[selmon->sellt]->arrange) {
 			m = c->mon;
-			if (!c->issteam) {
-				if (ev->value_mask & CWX) {
-					c->oldx = c->x;
-					c->x = m->mx + ev->x;
-				}
-				if (ev->value_mask & CWY) {
-					c->oldy = c->y;
-					c->y = m->my + ev->y;
-				}
-				if (ev->value_mask & CWWidth) {
-					c->oldw = c->w;
-					c->w = ev->width;
-				}
-				if (ev->value_mask & CWHeight) {
-					c->oldh = c->h;
-					c->h = ev->height;
-				}
+			if (ev->value_mask & CWX) {
+				c->oldx = c->x;
+				c->x = m->mx + ev->x;
+			}
+			if (ev->value_mask & CWY) {
+				c->oldy = c->y;
+				c->y = m->my + ev->y;
+			}
+			if (ev->value_mask & CWWidth) {
+				c->oldw = c->w;
+				c->w = ev->width;
+			}
+			if (ev->value_mask & CWHeight) {
+				c->oldh = c->h;
+				c->h = ev->height;
 			}
 			if (c->isfloating) {
 				if (!c->isfullscreen) {
