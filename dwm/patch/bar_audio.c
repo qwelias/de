@@ -10,8 +10,11 @@ static unsigned int audio_color = 1;
 
 static const char* wiremix[] = { "ghostty", "--title=WIREMIX", "--confirm-close-surface=false", "-e", "wiremix", NULL };
 static const char* wpctlsink[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@", NULL };
+static const char* wpctlsinkm[] = { "wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle", NULL };
+static const char* wpctlsinki[] = { "wpctl", "inspect", "@DEFAULT_AUDIO_SINK@", NULL };
 static const char* wpctlsource[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@", NULL };
-static const char* icons[] = { " "," ","󰕾 ","󰝟 " };
+static const char* wpctlsourcei[] = { "wpctl", "inspect", "@DEFAULT_AUDIO_SOURCE@", NULL };
+static const char* wpctlsourcem[] = { "wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle", NULL };
 
 static int
 killwiremix(void) {
@@ -54,48 +57,55 @@ int click_audio(Bar *bar, Arg *arg, BarArg *a)
     return -1;
 }
 
+static void readvolmute(char* buf, double* vol, int* mute) {
+    // fprintf(stderr, "readvolmute: %2s\n", buf+13);
+    if (vol) *vol = strtod(buf+8, NULL);
+    if (mute) *mute = !strncmp(buf+13, "[M", 2);
+}
+
 void audio_update(void)
 {
     // fprintf(stderr, "audio_update\n");
-    char sink[16] = {0};
-    char source[16] = {0};
+    char buf[16] = {0};
     double sinkvol = 0;
     int sinkm = 0;
     int sourcem = 0;
-    char* strp;
 
-    spawn_capture(&(Arg){ .v = wpctlsink }, sink, sizeof(sink) - 1);
-    sink[12] = '\n';
-    sinkvol = strtod(sink+8, &strp);
-    if (!strncmp(sink+13, "[M", 2)) sinkm = 1;
+    spawn_capture(&(Arg){ .v = wpctlsink }, buf, sizeof(buf) - 1);
+    readvolmute(buf, &sinkvol, &sinkm);
+    memset(buf, 0, sizeof(buf));
+    // fprintf(stderr, "audio_update: sink %d %s\n", sinkm, buf);
 
-    spawn_capture(&(Arg){ .v = wpctlsource }, source, sizeof(source) - 1);
-    if (!strncmp(source+13, "[M", 2)) sourcem = 1;
+    spawn_capture(&(Arg){ .v = wpctlsource }, buf, sizeof(buf) - 1);
+    readvolmute(buf, NULL, &sourcem);
+    // fprintf(stderr, "audio_update: source %d %s\n", sourcem, buf);
 
     snprintf(audio_txt, sizeof(audio_txt), 
-        " %s%s%03d  ",
-        icons[sourcem], icons[sinkm+2], (int)(sinkvol * 100)
+        "%s%s%03d",
+        sourcem ? " " : " ",
+        sinkm ? "󰝟 " : "󰕾 ",
+        (int)(sinkvol * 100)
     );
 }
 
 static void parse_name(char* out, char* name, unsigned int len) {
-    char* pos;
-    char format[64] = {0};
+    char* left = NULL;
+    char* right = NULL;
 
-    pos = strstr(out, "device.profile.description = ");
-    if (pos) {
-        sprintf(format, "device.profile.description = \"%%%u[^\"]", len);
-        sscanf(pos, format, name);
-        return;
+    left = strstr(out, "device.profile.description = ");
+    if (left) left += 30;
+    else {
+        left = strstr(out, "node.description = ");
+        if (left) left += 20;
     }
-    pos = strstr(out, "node.description = ");
-    if (pos) {
-        sprintf(format, "node.description = \"%%%u[^\"]", len);
-        sscanf(pos, format, name);
-        return;
+
+    right = left ? strstr(left, "\"") : NULL;
+    if (!left || !right) {
+        strcpy(name, "???");
+    } else {
+        strncpy(name, left, right - left);
+        name[right - left + 1] = '\0';
     }
-    
-    sprintf(name, "???");
 }
 
 void audio_change(const Arg *arg)
@@ -103,7 +113,7 @@ void audio_change(const Arg *arg)
     audio_dirty = 1;
     char buf[4096] = {0};
     char name[64] = {0};
-    double vol;
+    double vol = 0;
 
     // fprintf(stderr, "audio_change\n");
     sprintf(buf, 
@@ -112,10 +122,10 @@ void audio_change(const Arg *arg)
     );
     spawn_capture(&(Arg){ .v = (char*[]){ "wpctl", "set-volume","-l", "1.5", "@DEFAULT_AUDIO_SINK@", buf, NULL } }, buf, 1);
 
-    spawn_capture(&(Arg){ .v = (char*[]){ "wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@", NULL } }, buf, 12);
-    if (!sscanf(buf, "Volume: %le", &vol)) return;
+    spawn_capture(&(Arg){ .v = wpctlsink }, buf, 15);
+    readvolmute(buf, &vol, NULL);
 
-    spawn_capture(&(Arg){ .v = (char*[]){ "wpctl", "inspect", "@DEFAULT_AUDIO_SINK@", NULL } }, buf, sizeof(buf)-1);
+    spawn_capture(&(Arg){ .v = wpctlsinki }, buf, sizeof(buf)-1);
     parse_name(buf, name, sizeof(name)-1);
 
     vol = vol * 100 / 3 * 2;
@@ -123,11 +133,62 @@ void audio_change(const Arg *arg)
         "INT:value:%d",
         (int)vol
     );
-    if ((char)arg->i == '+') {
-        spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", buf,
-            "-h", "STRING:x-dunst-stack-tag:volume", "󰕾 +++++                  |", name, NULL } });
-    } else {
-        spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", buf,
-            "-h", "STRING:x-dunst-stack-tag:volume", "󰕾 -----                  |", name, NULL } });
+    spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", "STRING:x-dunst-stack-tag:volume",
+        "-h", buf,
+        (char)arg->i == '+' ? "󰕾 +++++                  |" : "󰕾 -----                  |",
+        name, NULL
+    } });
+}
+
+void audio_toggle_sink(const Arg *arg) {
+    audio_dirty = 1;
+    char buf[4096] = {0};
+    char name[64] = {0};
+    double vol = 0;
+    int mute = 0;
+
+    spawn_capture(&(Arg){ .v = wpctlsinkm }, buf, 1);
+    spawn_capture(&(Arg){ .v = wpctlsinki }, buf, sizeof(buf)-1);
+    parse_name(buf, name, sizeof(name)-1);
+
+    spawn_capture(&(Arg){ .v = wpctlsink }, buf, 15);
+    readvolmute(buf, &vol, &mute);
+    // fprintf(stderr, "audio_toggle_sink: %d %s\n", mute, buf);
+    if (mute) {
+        spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", "STRING:x-dunst-stack-tag:volume",
+            "󰝟 XXXXX", name, NULL
+        } });
+        return;
     }
+
+    vol = vol * 100 / 3 * 2;
+    sprintf(buf, 
+        "INT:value:%d",
+        (int)vol
+    );
+    spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", "STRING:x-dunst-stack-tag:volume",
+        "-h", buf,
+        "󰕾 )))))                  |",
+        name, NULL
+    } });
+}
+
+void audio_toggle_source(const Arg *arg) {
+    audio_dirty = 1;
+    char buf[4096] = {0};
+    char name[64] = {0};
+    int mute = 0;
+
+    spawn_capture(&(Arg){ .v = wpctlsourcem }, buf, 1);
+
+    spawn_capture(&(Arg){ .v = wpctlsourcei }, buf, sizeof(buf)-1);
+    parse_name(buf, name, sizeof(name)-1);
+
+    spawn_capture(&(Arg){ .v = wpctlsource }, buf, 15);
+    readvolmute(buf, NULL, &mute);
+    // fprintf(stderr, "audio_toggle_source: %d %s\n", mute, buf);
+    spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", "STRING:x-dunst-stack-tag:volume",
+        mute ? " XXXXX" : " (((((",
+        name, NULL
+    } });
 }

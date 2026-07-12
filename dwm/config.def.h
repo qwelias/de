@@ -217,8 +217,8 @@ static const Key keys[] = {
 	// fn keys
 	{ KeyPress,    0,                            XF86XK_AudioRaiseVolume,    NULL,         audio_change,           {.i = (int)'+' } },
 	{ KeyPress,    0,                            XF86XK_AudioLowerVolume,    NULL,         audio_change,           {.i = (int)'-' } },
-	{ KeyPress,    0,                            XF86XK_AudioMute,           NULL,         spawn,                  {.v = mute_vol } },
-	{ KeyPress,    0,                            XF86XK_AudioMicMute,        NULL,         spawn,                  {.v = mute_mic } },
+	{ KeyPress,    0,                            XF86XK_AudioMute,           NULL,         audio_toggle_sink,      {0} },
+	{ KeyPress,    0,                            XF86XK_AudioMicMute,        NULL,         audio_toggle_source,    {0} },
 	{ KeyPress,    0,                            XF86XK_MonBrightnessUp,     NULL,         spawn,                  {.v = brighter } },
 	{ KeyPress,    0,                            XF86XK_MonBrightnessDown,   NULL,         spawn,                  {.v = dimmer } },
 	{ KeyPress,    0,                            XF86XK_KbdBrightnessUp,     NULL,         spawn,                  {.v = kbd_up } },
