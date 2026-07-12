@@ -1,4 +1,6 @@
 /* See LICENSE file for copyright and license details. */
+#include "patch/bar_audio.h"
+#include "patch/bar_bat.h"
 #include "patch/bar_loop.h"
 #include "patch/bar_system_stats.h"
 #include "patch/bar_bat.h"
@@ -148,10 +150,10 @@ static const BarRule barrules[] = {
 	{ -1,        0,     BAR_ALIGN_NONE,   width_wintitle,           draw_wintitle,          click_wintitle,          NULL,                    "wintitle" },
 };
 static const BarUpdateSet barupdates[] = {
-	{ 3, system_stats_update, "system_stats_update" },
-	{ 3, update_time, "update_time" },
-	{ 3, bat_update, "bat_update" },
-	{ 3, audio_update, "audio_update" },
+	{ 3, system_stats_update, NULL, "system_stats_update" },
+	{ 3, update_time, NULL, "update_time" },
+	{ 3, bat_update, &bat_dirty, "bat_update" },
+	{ 10, audio_update, &audio_dirty, "audio_update" },
 };
 
 /* layout(s) */
@@ -213,8 +215,8 @@ static const char *suspend[]  = { "systemctl", "suspend", NULL };
 static const Key keys[] = {
 	/* event,      modifier                      key                         layout        function                argument */
 	// fn keys
-	{ KeyPress,    0,                            XF86XK_AudioRaiseVolume,    NULL,         spawn,                  {.v = up_vol } },
-	{ KeyPress,    0,                            XF86XK_AudioLowerVolume,    NULL,         spawn,                  {.v = down_vol } },
+	{ KeyPress,    0,                            XF86XK_AudioRaiseVolume,    NULL,         audio_change,           {.i = (int)'+' } },
+	{ KeyPress,    0,                            XF86XK_AudioLowerVolume,    NULL,         audio_change,           {.i = (int)'-' } },
 	{ KeyPress,    0,                            XF86XK_AudioMute,           NULL,         spawn,                  {.v = mute_vol } },
 	{ KeyPress,    0,                            XF86XK_AudioMicMute,        NULL,         spawn,                  {.v = mute_mic } },
 	{ KeyPress,    0,                            XF86XK_MonBrightnessUp,     NULL,         spawn,                  {.v = brighter } },

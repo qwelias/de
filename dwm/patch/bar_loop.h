@@ -5,6 +5,7 @@
 typedef struct BarUpdateSet {
 	const size_t interval;
 	void (*run)(void);
+	int* dirty;
 	const char *name;
 } BarUpdateSet;
 

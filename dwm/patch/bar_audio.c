@@ -1,3 +1,4 @@
+#include "./bar_audio.h"
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +42,7 @@ int draw_audio(Bar *bar, BarArg *a)
 
 int click_audio(Bar *bar, Arg *arg, BarArg *a)
 {
+    audio_dirty = 1;
     if (arg->i == Button1) spawn(&(Arg){ .v = mute_mic });
     else if (arg->i == Button2) {
         if (killwiremix()) return -1;
@@ -54,6 +56,7 @@ int click_audio(Bar *bar, Arg *arg, BarArg *a)
 
 void audio_update(void)
 {
+    // fprintf(stderr, "audio_update\n");
     char sink[16] = {0};
     char source[16] = {0};
     double sinkvol = 0;
@@ -73,4 +76,58 @@ void audio_update(void)
         " %s%s%03d  ",
         icons[sourcem], icons[sinkm+2], (int)(sinkvol * 100)
     );
+}
+
+static void parse_name(char* out, char* name, unsigned int len) {
+    char* pos;
+    char format[64] = {0};
+
+    pos = strstr(out, "device.profile.description = ");
+    if (pos) {
+        sprintf(format, "device.profile.description = \"%%%u[^\"]", len);
+        sscanf(pos, format, name);
+        return;
+    }
+    pos = strstr(out, "node.description = ");
+    if (pos) {
+        sprintf(format, "node.description = \"%%%u[^\"]", len);
+        sscanf(pos, format, name);
+        return;
+    }
+    
+    sprintf(name, "???");
+}
+
+void audio_change(const Arg *arg)
+{
+    audio_dirty = 1;
+    char buf[4096] = {0};
+    char name[64] = {0};
+    double vol;
+
+    // fprintf(stderr, "audio_change\n");
+    sprintf(buf, 
+        "5%%%c",
+        (char)arg->i
+    );
+    spawn_capture(&(Arg){ .v = (char*[]){ "wpctl", "set-volume","-l", "1.5", "@DEFAULT_AUDIO_SINK@", buf, NULL } }, buf, 1);
+
+    spawn_capture(&(Arg){ .v = (char*[]){ "wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@", NULL } }, buf, 12);
+    if (!sscanf(buf, "Volume: %le", &vol)) return;
+
+    spawn_capture(&(Arg){ .v = (char*[]){ "wpctl", "inspect", "@DEFAULT_AUDIO_SINK@", NULL } }, buf, sizeof(buf)-1);
+    parse_name(buf, name, sizeof(name)-1);
+
+    vol = vol * 100 / 3 * 2;
+    sprintf(buf, 
+        "INT:value:%d",
+        (int)vol
+    );
+    if ((char)arg->i == '+') {
+        spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", buf,
+            "-h", "STRING:x-dunst-stack-tag:volume", "󰕾 +++++                  |", name, NULL } });
+    } else {
+        spawn(&(Arg){ .v = (char*[]){ "notify-send", "-u","low", "-h", buf,
+            "-h", "STRING:x-dunst-stack-tag:volume", "󰕾 -----                  |", name, NULL } });
+    }
 }

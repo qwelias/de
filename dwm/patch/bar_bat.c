@@ -1,3 +1,4 @@
+#include "./bar_bat.h"
 #include "../util.h"
 
 #include <inttypes.h>
@@ -44,6 +45,7 @@ int draw_bat(Bar *bar, BarArg *a)
 
 int click_bat(Bar *bar, Arg *arg, BarArg *a)
 {
+    bat_dirty = 1;
     if (arg->i == Button1) setpower("balanced", "󱐋 balanced");
     else if (arg->i == Button2) setpower("performance", "󱐋 performance");
     else if (arg->i == Button3) setpower("power-saver", "󱐋 power-saver");

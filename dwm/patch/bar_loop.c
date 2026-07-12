@@ -14,7 +14,12 @@ runupdates(int force)
 	const BarUpdateSet *bu;
 	for (size_t i = 0; i < LENGTH(barupdates); i++) {
 		bu = &barupdates[i];
-		if (force || sleepcounter % bu->interval == 0) {
+		if (
+			sleepcounter % bu->interval == 0
+			|| (bu->dirty && *bu->dirty)
+			|| force
+		) {
+			if (bu->dirty) *bu->dirty = 0;
 			bu->run();
 			redraw = 1;
 		}
