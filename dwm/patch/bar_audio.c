@@ -43,28 +43,13 @@ int draw_audio(Bar *bar, BarArg *a)
     return drw_text(drw, a->x, a->y, a->w, a->h, lpad, audio_txt, 0, 1);
 }
 
-int click_audio(Bar *bar, Arg *arg, BarArg *a)
-{
-    audio_dirty = 1;
-    if (arg->i == Button1) spawn(&(Arg){ .v = mute_mic });
-    else if (arg->i == Button2) {
-        if (killwiremix()) return -1;
-        spawn(&(Arg){ .v = wiremix });
-    }
-    else if (arg->i == Button3) spawn(&(Arg){ .v = mute_vol });
-    else if (arg->i == Button4) spawn(&(Arg){ .v = up_vol });
-    else if (arg->i == Button5) spawn(&(Arg){ .v = down_vol });
-    return -1;
-}
-
 static void readvolmute(char* buf, double* vol, int* mute) {
     // fprintf(stderr, "readvolmute: %2s\n", buf+13);
     if (vol) *vol = strtod(buf+8, NULL);
     if (mute) *mute = !strncmp(buf+13, "[M", 2);
 }
 
-void audio_update(void)
-{
+void audio_update(void) {
     // fprintf(stderr, "audio_update\n");
     char buf[16] = {0};
     double sinkvol = 0;
@@ -108,8 +93,7 @@ static void parse_name(char* out, char* name, unsigned int len) {
     }
 }
 
-void audio_change(const Arg *arg)
-{
+void audio_change(const Arg *arg) {
     audio_dirty = 1;
     char buf[4096] = {0};
     char name[64] = {0};
@@ -191,4 +175,18 @@ void audio_toggle_source(const Arg *arg) {
         mute ? " XXXXX" : " (((((",
         name, NULL
     } });
+}
+
+int click_audio(Bar *bar, Arg *arg, BarArg *a)
+{
+    audio_dirty = 1;
+    if (arg->i == Button1) audio_toggle_source(NULL);
+    else if (arg->i == Button2) {
+        if (killwiremix()) return -1;
+        spawn(&(Arg){ .v = wiremix });
+    }
+    else if (arg->i == Button3) audio_toggle_sink(NULL);
+    else if (arg->i == Button4) audio_change(&(Arg){ .i = (int)'+' });
+    else if (arg->i == Button5) audio_change(&(Arg){ .i = (int)'-' });
+    return -1;
 }

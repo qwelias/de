@@ -198,10 +198,6 @@ static const char *termcmd[]  = { "ghostty", NULL };
 
 static const Layout *layouts_swap[] = { &layouts[2], &layouts[0] };
 
-static const char *up_vol[]   = { "kb-volume.sh", "+", NULL };
-static const char *down_vol[] = { "kb-volume.sh", "-", NULL };
-static const char *mute_vol[] = { "kb-volume.sh", "x", NULL };
-static const char *mute_mic[] = { "kb-volume.sh", "m", NULL };
 static const char *brighter[] = { "brightnessctl", "set", "10%+", NULL };
 static const char *dimmer[]   = { "brightnessctl", "set", "10%-", NULL };
 static const char *kbd_up[]   = { "brightnessctl", "--device=tpacpi::kbd_backlight", "set", "10%+", NULL };
