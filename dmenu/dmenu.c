@@ -489,14 +489,6 @@ keypress(XKeyEvent *ev)
 		case XK_j: ksym = XK_Next;  break;
 		case XK_k: ksym = XK_Prior; break;
 		case XK_l: ksym = XK_Down;  break;
-		case XK_Up:
-			navhistory(-1);
-			buf[0]=0;
-			break;
-		case XK_Down:
-			navhistory(1);
-			buf[0]=0;
-			break;
 		default:
 			return;
 		}
@@ -556,13 +548,15 @@ insert:
 		}
 		if (lines > 0)
 			return;
-		/* fallthrough */
-	case XK_Up:
-	case XK_KP_Up:
 		if (sel && sel->left && (sel = sel->left)->right == curr) {
 			curr = prev;
 			calcoffsets();
 		}
+		break;
+	case XK_Up:
+	case XK_KP_Up:
+		navhistory(-1);
+		buf[0]=0;
 		break;
 	case XK_Next:
 	case XK_KP_Next:
@@ -596,13 +590,15 @@ insert:
 		}
 		if (lines > 0)
 			return;
-		/* fallthrough */
-	case XK_Down:
-	case XK_KP_Down:
 		if (sel && sel->right && (sel = sel->right) == next) {
 			curr = next;
 			calcoffsets();
 		}
+		break;
+	case XK_Down:
+	case XK_KP_Down:
+		navhistory(1);
+		buf[0]=0;
 		break;
 	case XK_Tab:
 		if (!sel)
