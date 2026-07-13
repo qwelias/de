@@ -1,3 +1,5 @@
+static unsigned int prevpos = 0;
+
 static void
 draw_key_feedback(Display *dpy, struct lock **locks, int screen)
 {
@@ -19,10 +21,12 @@ draw_key_feedback(Display *dpy, struct lock **locks, int screen)
 	}
 
 	unsigned int block_width = width / blocks_count;
-	unsigned int position = rand() % blocks_count;
+	unsigned int position = prevpos;
+	while (position == prevpos) position = rand() % blocks_count;
+	prevpos = position;
 
 	XClearWindow(dpy, win);
-	XFillRectangle(dpy, win, gc, blocks_x + position*block_width, blocks_y, width, height);
+	XFillRectangle(dpy, win, gc, blocks_x + position*block_width, blocks_y, block_width, height);
 
 	XFreeGC(dpy, gc);
 }

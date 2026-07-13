@@ -5,9 +5,9 @@ static const char *group = "nobody"; // use "nobody" for arch
 static const char *colorname[NUMCOLS] = {
 	[INIT] =   "black",     /* after initialization */
 	[INPUT] =  "#272822",   /* during input */
-	[FAILED] = "#161613",   /* wrong password */
+	[FAILED] = "#ef971f",   /* wrong password */
 	[CAPS] =   "#58d9ef",       /* CapsLock on */
-	[BLOCKS] = "#e6db69",   /* key feedback block */
+	[BLOCKS] = "#a6e22e",   /* key feedback block */
 };
 
 /* treat a cleared input like a wrong password (color) */
@@ -30,7 +30,7 @@ static const secretpass scom[] = {
 };
 
 static const int blocks_width = 0; // 0 = full width
-static const int blocks_height = 16;
+static const int blocks_height = 0;
 
 // position
 static const int blocks_x = 0;
