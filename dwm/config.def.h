@@ -119,6 +119,7 @@ static const Rule rules[] = {
 	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1, .floatpos = "88%   0% 255W 550H"},
 	{ .monitor = -1, .title = "TIMES", .isfloating = 1, .floatpos = "88%   0% 365W 210H"},
 	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1},
+	{ .monitor = -1, .title = "Delta Chat", .isfloating = 1},
 	{ .monitor = -1, .title = "Karing", .isfloating = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1},
 	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1},
