@@ -93,7 +93,7 @@ addhistory(char *input)
 
 	if (
 		!histfile || !input || !HISTCAP || !input[0] ||
-		strlen(input) > HISTLINE
+		strlen(input) >= HISTLINE
 	) {
 		return;
 	}
@@ -109,8 +109,7 @@ addhistory(char *input)
 		for (i = dup; i < histtop; i++) {
 			strcpy(history[i], history[i+1]);
 		}
-		strncpy(history[histtop], input, HISTLINE-1);
-		history[histtop][HISTLINE-1] = '\n';
+		strcpy(history[histtop], input);
 	}
 }
 
