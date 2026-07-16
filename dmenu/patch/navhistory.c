@@ -109,7 +109,8 @@ addhistory(char *input)
 		for (i = dup; i < histtop; i++) {
 			strcpy(history[i], history[i+1]);
 		}
-		strcpy(history[histtop], input);
+		strncpy(history[histtop], input, HISTLINE-1);
+		history[histtop][HISTLINE-1] = '\n';
 	}
 }
 
