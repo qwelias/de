@@ -15,13 +15,11 @@ const
 char *colors[][2] = {
 	/*               fg         bg       */
 	[SchemeNorm] = { "#f8f8f2", "#272822" },
-	[SchemeSel]  = { "1d1e19", "#e6db74" },
+	[SchemeSel]  = { "#1d1e19", "#e6db74" },
 	[SchemeOut]  = { "#66d9ef", "#272822" },
 };
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
 static unsigned int lines      = 0;
-static unsigned int maxhist    = 15;
-static int histnodup           = 1;	/* if 0, record repeated histories */
 
 /*
  * Characters not considered part of a word while deleting words
