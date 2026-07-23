@@ -1533,6 +1533,7 @@ manage(Window w, XWindowAttributes *wa)
 	updatesizehints(c);
 	updatewmhints(c);
 
+	c->iscentered = c->iscentered || c->isfloating;
 	if (c->iscentered) {
 		c->x = c->mon->wx + (c->mon->ww - WIDTH(c)) / 2;
 		c->y = c->mon->wy;
@@ -1544,8 +1545,7 @@ manage(Window w, XWindowAttributes *wa)
 	XSelectInput(dpy, w, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
 	grabbuttons(c, 0);
 
-	if (!c->isfloating)
-		c->isfloating = c->oldstate = trans != None || c->isfixed;
+	c->isfloating = c->isfloating || (c->oldstate = trans != None);
 	if (c->isfloating) {
 		XRaiseWindow(dpy, c->win);
 		XSetWindowBorder(dpy, w, scheme[SchemeNorm][ColFloat].pixel);
@@ -2644,6 +2644,7 @@ updatesizehints(Client *c)
 	} else
 		c->maxa = c->mina = 0.0;
 	c->isfixed = (c->maxw && c->maxh && c->maxw == c->minw && c->maxh == c->minh);
+	c->isfloating = c->isfloating || c->isfixed;
 	c->hintsvalid = 1;
 }
 
