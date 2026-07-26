@@ -2083,7 +2083,7 @@ void
 setlayout(const Arg *arg)
 {
 	// fprintf(stderr, "setlayout\n");
-	if (selmon->sel->isfullscreen) return;
+	if (selmon->sel && selmon->sel->isfullscreen) return;
 
 	if (arg && arg->v && arg->v != selmon->lt[selmon->sellt]) {
 		selmon->sellt ^= 1;
