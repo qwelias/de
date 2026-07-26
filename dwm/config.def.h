@@ -208,6 +208,7 @@ static const char *maimss[]   = { "maimpick.sh", "ss", NULL };
 static const char *maimocr[]  = { "maimpick.sh", "ocr", NULL };
 static const char *switchsink[]  = { "switch_sink.sh", NULL };
 static const char *suspend[]  = { "systemctl", "suspend", NULL };
+static const char *clicks[]  = { "xdotool", "click", "--repeat", "100", "--delay", "30", "1", NULL };
 
 static const Key keys[] = {
 	/* event,      modifier                      key                         layout        function                argument */
@@ -230,7 +231,6 @@ static const Key keys[] = {
 	{ KeyPress,    Mod4Mask,                       XK_p,                       NULL,         spawn,                  {.v = maimss } },
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_p,                       NULL,         spawn,                  {.v = maimocr } },
 	{ KeyPress,    ControlMask|Mod1Mask,           XK_x,                       NULL,         spawn,                  {.v = switchsink } },
-
 	// nav clients
 	{ KeyPress,    Mod4Mask,                       XK_b,                       NULL,         togglebar,              {0} },
 	{ KeyPress,    Mod4Mask,                       XK_d,                       NULL,         focusstack,             {.i = +1 } },
@@ -282,6 +282,7 @@ static const Button buttons[] = {
 	{ ClkWinTitle,          0,                     Button3,       NULL,            resizemouse,    {0} },
 	{ ClkWinTitle,          0,                     Button4,       NULL,            focusstack,     {.i = -1} },
 	{ ClkWinTitle,          0,                     Button5,       NULL,            focusstack,     {.i = +1} },
+	{ ClkClientWin,         Mod4Mask|Mod1Mask,     Button1,       NULL,            spawn,          { .v = clicks } },
 	{ ClkClientWin,         Mod4Mask,              Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkClientWin,         Mod4Mask,              Button2,       NULL,            togglefloating, {0} },
 	{ ClkClientWin,         Mod4Mask,              Button3,       NULL,            resizemouse,    {0} },
