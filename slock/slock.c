@@ -1,10 +1,7 @@
 /* See LICENSE file for license details. */
 #define _XOPEN_SOURCE 500
 #define LENGTH(X) (sizeof X / sizeof X[0])
-#if HAVE_SHADOW_H
 #include <shadow.h>
-#endif
-
 #include <ctype.h>
 #include <errno.h>
 #include <grp.h>
@@ -23,9 +20,6 @@
 
 #include <time.h>
 #include <X11/XKBlib.h>
-#ifdef XINERAMA
-#include <X11/extensions/Xinerama.h>
-#endif
 
 #include "arg.h"
 #include "util.h"
@@ -119,7 +113,6 @@ gethash(void)
 	}
 	hash = pw->pw_passwd;
 
-#if HAVE_SHADOW_H
 	if (!strcmp(hash, "x")) {
 		struct spwd *sp;
 		if (!(sp = getspnam(pw->pw_name)))
@@ -127,19 +120,6 @@ gethash(void)
 			    "Make sure to suid or sgid slock.\n");
 		hash = sp->sp_pwdp;
 	}
-#else
-	if (!strcmp(hash, "*")) {
-#ifdef __OpenBSD__
-		if (!(pw = getpwuid_shadow(getuid())))
-			die("slock: getpwnam_shadow: cannot retrieve shadow entry. "
-			    "Make sure to suid or sgid slock.\n");
-		hash = pw->pw_passwd;
-#else
-		die("slock: getpwuid: cannot retrieve shadow entry. "
-		    "Make sure to suid or sgid slock.\n");
-#endif /* __OpenBSD__ */
-	}
-#endif /* HAVE_SHADOW_H */
 
 	return hash;
 }
@@ -212,8 +192,6 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 			case XK_BackSpace:
 				if (len) {
 					passwd[--len] = '\0';
-					for (screen = 0; screen < nscreens; screen++)
-						draw_key_feedback(dpy, locks, screen);
 				}
 				break;
 			case XK_Caps_Lock:
@@ -229,20 +207,23 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 					explicit_bzero(&passwd, sizeof(passwd));
 					len = 0;
 				}
-				for (screen = 0; screen < nscreens; screen++)
-					draw_key_feedback(dpy, locks, screen);
 				break;
 			}
-			color = len ? (caps ? CAPS : INPUT) : (failure || failonclear ? FAILED : INIT);
-			if (running && oldc != color) {
-				for (screen = 0; screen < nscreens; screen++) {
-					XSetWindowBackground(dpy,
-					                     locks[screen]->win,
-					                     locks[screen]->colors[color]);
-					XClearWindow(dpy, locks[screen]->win);
-					if (len) draw_key_feedback(dpy, locks, screen);
+
+			if (running) {
+				color = len ? (caps ? CAPS : INPUT) : (failure || failonclear ? FAILED : INIT);
+				if (oldc != color) {
+					for (screen = 0; screen < nscreens; screen++) {
+						XSetWindowBackground(dpy,
+											locks[screen]->win,
+											locks[screen]->colors[color]);
+						XClearWindow(dpy, locks[screen]->win);
+						if (len) draw_key_feedback(dpy, locks, screen);
+					}
+					oldc = color;
+				} else if (len) {
+					for (screen = 0; screen < nscreens; screen++) draw_key_feedback(dpy, locks, screen);
 				}
-				oldc = color;
 			}
 		} else if (rr->active && ev.type == rr->evbase + RRScreenChangeNotify) {
 			rre = (XRRScreenChangeNotifyEvent*)&ev;
