@@ -1,2 +1,7 @@
 Completion:
   ArgumentLists: None
+CompileFlags:
+  Add:
+    - -xc
+    - -I/usr/include/freetype2
+    - -I/usr/include/libpng16
