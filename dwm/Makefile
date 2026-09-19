@@ -3,29 +3,26 @@
 
 include config.mk
 
-SRC = dwm.c util.c
-OBJ = ${SRC:.c=.o}
-
 all: dwm
 
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-${OBJ}: config.h config.mk drw.h
+dwm.o: config.h config.mk drw.h util.h
 
 config.h:
 	cp config.def.h $@
 
-dwm: ${OBJ}
-	${CC} -o $@ ${OBJ} ${LDFLAGS}
+dwm: dwm.o
+	${CC} -o $@ dwm.o ${LDFLAGS}
 
 clean:
-	rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz
+	rm -f dwm dwm.o dwm-${VERSION}.tar.gz
 
 dist: clean
 	mkdir -p dwm-${VERSION}
 	cp -R LICENSE Makefile README config.def.h config.mk\
-		dwm.1 util.h ${SRC} dwm.png transient.c dwm-${VERSION}
+		dwm.1 util.h dwm.c dwm.png transient.c dwm-${VERSION}
 	tar -cf dwm-${VERSION}.tar dwm-${VERSION}
 	gzip dwm-${VERSION}.tar
 	rm -rf dwm-${VERSION}
