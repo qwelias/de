@@ -20,14 +20,13 @@
  *
  * To understand everything else, start reading main().
  */
+
+#ifndef DWM_H
+#define DWM_H
 #include <X11/X.h>
-#include <locale.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -39,11 +38,11 @@
 #include <X11/Xutil.h>
 #include <X11/Xft/Xft.h>
 #include <pthread.h>
-
-#include "drw.h"
-#include "util.h"
-
 #include <poll.h>
+
+#include "./drw.h"
+#include "./data.h"
+#include "bar_systray.h"
 
 /* macros */
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
@@ -56,7 +55,34 @@
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define HIDDEN(C)               ((getstate(C->win) == IconicState))
 
+/* variables */
+static const char broken[] = "broken";
+static pthread_t barloopth;
 
+static int keypressed;
+static int btnpressed;
+
+static int screen;
+static int sw, sh;           /* X display screen geometry width, height */
+static int bh;               /* bar geometry */
+static int fonth;            /* sum of left and right padding for text */
+/* Some clients (e.g. alacritty) helpfully send configure requests with a new size or position
+ * when they detect that they have been moved to another monitor. This can cause visual glitches
+ * when moving (or resizing) client windows from one monitor to another. This variable is used
+ * internally to ignore such configure requests while movemouse or resizemouse are being used. */
+static int ignoreconfigurerequests = 0;
+static int (*xerrorxlib)(Display *, XErrorEvent *);
+static unsigned int numlockmask = 0;
+static Atom wmatom[WMLast], netatom[NetLast];
+static Atom xatom[XLast];
+static Atom clientatom[ClientLast];
+static volatile sig_atomic_t running = 1;
+static Cur *cursor[CurLast];
+static Clr **scheme;
+static Display *dpy;
+static Drw *drw;
+static Monitor *mons, *selmon;
+static Window root, wmcheckwin;
 
 /* function declarations */
 static void applyrules(Client *c);
@@ -151,62 +177,10 @@ static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
 static int streqeq(const char* a, const char* b);
-
-/* bar functions */
-
-#include "patch/include.h"
-
-/* variables */
-static const char broken[] = "broken";
-static pthread_t barloopth;
-
-static int keypressed;
-static int btnpressed;
-
-static int screen;
-static int sw, sh;           /* X display screen geometry width, height */
-static int bh;               /* bar geometry */
-static int fonth;            /* sum of left and right padding for text */
-/* Some clients (e.g. alacritty) helpfully send configure requests with a new size or position
- * when they detect that they have been moved to another monitor. This can cause visual glitches
- * when moving (or resizing) client windows from one monitor to another. This variable is used
- * internally to ignore such configure requests while movemouse or resizemouse are being used. */
-static int ignoreconfigurerequests = 0;
-static int (*xerrorxlib)(Display *, XErrorEvent *);
-static unsigned int numlockmask = 0;
-static void (*handler[LASTEvent]) (XEvent *) = {
-	[ButtonPress] = buttonpress,
-	[ClientMessage] = clientmessage,
-	[ConfigureRequest] = configurerequest,
-	[ConfigureNotify] = configurenotify,
-	[DestroyNotify] = destroynotify,
-	[EnterNotify] = enternotify,
-	[Expose] = expose,
-	[FocusIn] = focusin,
-	[KeyPress] = keypress,
-	[KeyRelease] = keyrelease,
-	[MappingNotify] = mappingnotify,
-	[MapRequest] = maprequest,
-	[MotionNotify] = motionnotify,
-	[PropertyNotify] = propertynotify,
-	[ResizeRequest] = resizerequest,
-	[UnmapNotify] = unmapnotify
-};
-static Atom wmatom[WMLast], netatom[NetLast];
-static Atom xatom[XLast];
-static Atom clientatom[ClientLast];
-static volatile sig_atomic_t running = 1;
-static Cur *cursor[CurLast];
-static Clr **scheme;
-static Display *dpy;
-static Drw *drw;
-static Monitor *mons, *selmon;
-static Window root, wmcheckwin;
-
-/* configuration, allows nested code to access above variables */
-#include "config.h"
-
-#include "patch/include.c"
+static void attachx(Client *c);
+static void tile(Monitor *m);
+static void monocle(Monitor *m);
+static void gaplessgrid(Monitor *m);
 
 /* function implementations */
 int
@@ -214,6 +188,30 @@ streqeq(const char* a, const char* b) {
 	int i = 0;
 	while (a[i] && a[i] == b[i]) i++;
 	return a[i] == b[i];
+}
+
+Atom
+getatomprop(Client *c, Atom prop, Atom req)
+{
+	int format;
+	unsigned long nitems, dl;
+	unsigned char *p = NULL;
+	Atom da, atom = None;
+
+	if (prop == xatom[XembedInfo])
+		req = xatom[XembedInfo];
+
+	/* FIXME getatomprop should return the number of items and a pointer to
+	 * the stored data instead of this workaround */
+	if (XGetWindowProperty(dpy, c->win, prop, 0L, sizeof atom, False, req,
+		&da, &format, &nitems, &dl, &p) == Success && p) {
+		if (nitems > 0 && format == 32)
+			atom = *(long *)p;
+		if (da == xatom[XembedInfo] && dl == 2)
+			atom = ((long *)p)[1];
+		XFree(p);
+	}
+	return atom;
 }
 
 void
@@ -1057,30 +1055,6 @@ focusstack(const Arg *arg)
 	}
 }
 
-Atom
-getatomprop(Client *c, Atom prop, Atom req)
-{
-	int format;
-	unsigned long nitems, dl;
-	unsigned char *p = NULL;
-	Atom da, atom = None;
-
-	if (prop == xatom[XembedInfo])
-		req = xatom[XembedInfo];
-
-	/* FIXME getatomprop should return the number of items and a pointer to
-	 * the stored data instead of this workaround */
-	if (XGetWindowProperty(dpy, c->win, prop, 0L, sizeof atom, False, req,
-		&da, &format, &nitems, &dl, &p) == Success && p) {
-		if (nitems > 0 && format == 32)
-			atom = *(long *)p;
-		if (da == xatom[XembedInfo] && dl == 2)
-			atom = ((long *)p)[1];
-		XFree(p);
-	}
-	return atom;
-}
-
 int
 getrootptr(int *x, int *y)
 {
@@ -1494,6 +1468,104 @@ nexttiled(Client *c)
 	return c;
 }
 
+void
+tile(Monitor *m)
+{
+	unsigned int i, n, h, mw, my, ty;
+	Client *c;
+
+	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+	if (n == 0)
+		return;
+	if (n > m->nmaster)
+		mw = m->nmaster ? m->ww * m->mfact : 0;
+	else
+		mw = m->ww;
+
+	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
+		if (i < m->nmaster) {
+			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
+			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
+			if (my + HEIGHT(c) < m->wh)
+				my += HEIGHT(c);
+		} else {
+			h = (m->wh - ty) / (n - i);
+			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
+			if (ty + HEIGHT(c) < m->wh)
+					ty += HEIGHT(c);
+		}
+}
+
+void
+monocle(Monitor *m)
+{
+	unsigned int n = 0;
+	Client *c;
+
+	for (c = m->clients; c; c = c->next)
+		if (ISVISIBLE(c))
+			n++;
+	if (n > 0 && n < 100) /* override layout symbol */
+		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[ %d ]", n);
+
+	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
+		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
+}
+
+void
+gaplessgrid(Monitor *m)
+{
+	unsigned int i, n;
+	int x, y, cols, rows, ch, cw, cn, rn, rrest, crest; // counters
+	int ot = gapptop;
+	int ob = gappbot;
+	int ow = gappow;
+	int ih = gappih;
+	int iw = gappiw;
+
+	Client *c;
+	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+
+	if (n == 0)
+		return;
+
+	/* grid dimensions */
+	for (cols = 0; cols <= n/2; cols++)
+		if (cols*cols >= n)
+			break;
+	if (n == 5) /* set layout against the general calculation: not 1:2:2, but 2:3 */
+		cols = 2;
+	rows = n/cols;
+	cn = rn = 0; // reset column no, row no, client count
+
+	ch = (m->wh - ot - ob - ih * (rows - 1)) / rows;
+	cw = (m->ww - 2*ow - iw * (cols - 1)) / cols;
+	rrest = (m->wh - ot - ob - ih * (rows - 1)) - ch * rows;
+	crest = (m->ww - 2*ow - iw * (cols - 1)) - cw * cols;
+	x = m->wx + ow;
+	y = m->wy + ot;
+
+	for (i = 0, c = nexttiled(m->clients); c; i++, c = nexttiled(c->next)) {
+		if (i/rows + 1 > cols - n%cols) {
+			rows = n/cols + 1;
+			ch = (m->wh - ot - ob - ih * (rows - 1)) / rows;
+			rrest = (m->wh - ot - ob - ih * (rows - 1)) - ch * rows;
+		}
+		resize(c,
+			x,
+			y + rn*(ch + ih) + MIN(rn, rrest),
+			cw + (cn < crest ? 1 : 0) - 2*c->bw,
+			ch + (rn < rrest ? 1 : 0) - 2*c->bw,
+			0);
+		rn++;
+		if (rn >= rows) {
+			rn = 0;
+			x += cw + ih + (cn < crest ? 1 : 0);
+			cn++;
+		}
+	}
+}
+
 int
 noborder(Client *c)
 {
@@ -1621,81 +1693,6 @@ resizeclient(Client *c, int x, int y, int w, int h)
 }
 
 void
-resizemouse(const Arg *arg)
-{
-	int ocx, ocy, nw, nh, nx, ny;
-	int opx, opy;
-	unsigned int dui;
-	Window dummy;
-	Client *c;
-	Monitor *m;
-	XEvent ev;
-	Time lasttime = 0;
-
-	if (!(c = selmon->sel))
-		return;
-	if (c->isfullscreen) /* no support resizing fullscreen windows by mouse */
-		return;
-	restack(selmon);
-	nx = ocx = c->x;
-	ny = ocy = c->y;
-	nh = c->h;
-	nw = c->w;
-	if (!XQueryPointer(dpy, c->win, &dummy, &dummy, &opx, &opy, &nx, &ny, &dui))
-		return;
-	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-		None, cursor[CurResizeBR]->cursor, CurrentTime) != GrabSuccess)
-		return;
-	XWarpPointer (dpy, None, c->win, 0, 0, 0, 0,
-			(c->w + c->bw - 1),
-			(c->h + c->bw - 1));
-	ignoreconfigurerequests = 1;
-	do {
-		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
-		switch(ev.type) {
-		case ConfigureRequest:
-		case Expose:
-		case MapRequest:
-			handler[ev.type](&ev);
-			break;
-		case MotionNotify:
-			if ((ev.xmotion.time - lasttime) <= (1000 / refreshrate_resize))
-				continue;
-			lasttime = ev.xmotion.time;
-
-			nx = c->x;
-			ny = c->y;
-			nw = ev.xmotion.x - ocx - 2 * c->bw + 1;
-			nh = ev.xmotion.y - ocy - 2 * c->bw + 1;
-			if (c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
-			&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
-			{
-				if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
-				&& (abs(nw - c->w) > snap || abs(nh - c->h) > snap)) {
-					togglefloating(NULL);
-				}
-			}
-			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
-				resize(c, nx, ny, nw, nh, 1);
-			}
-			break;
-		}
-	} while (ev.type != ButtonRelease);
-
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0,
-			(c->w + c->bw - 1),
-			(c->h + c->bw - 1));
-	XUngrabPointer(dpy, CurrentTime);
-	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
-	if ((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
-		sendmon(c, m);
-		selmon = m;
-		focus(NULL);
-	}
-	ignoreconfigurerequests = 0;
-}
-
-void
 restack(Monitor *m)
 {
 	// fprintf(stderr, "restack\n");
@@ -1726,30 +1723,6 @@ restack(Monitor *m)
 	}
 	XSync(dpy, False);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
-}
-
-void
-run(void)
-{
-	XEvent ev;
-	XSync(dpy, False);
-	/* main event loop */
-	while (running) {
-		struct pollfd pfd = {
-			.fd = ConnectionNumber(dpy),
-			.events = POLLIN,
-		};
-		int pending = XPending(dpy) > 0 || poll(&pfd, 1, -1) > 0;
-
-		if (!running)
-			break;
-		if (!pending)
-			continue;
-
-		XNextEvent(dpy, &ev);
-		if (handler[ev.type])
-			handler[ev.type](&ev); /* call handler */
-	}
 }
 
 void
@@ -2583,29 +2556,144 @@ zoom(const Arg *arg)
 	pop(c);
 }
 
-int
-main(int argc, char *argv[])
+void
+attachx(Client *c)
 {
-	if (argc == 2 && !strcmp("-v", argv[1]))
-		die("dwm-"VERSION);
-	else if (argc != 1)
-		die("usage: dwm [-v]");
-	if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
-		fputs("warning: no locale support\n", stderr);
-	if (!(dpy = XOpenDisplay(NULL)))
-		die("dwm: cannot open display");
-	checkotherwm();
-	setup();
-#ifdef __OpenBSD__
-	if (pledge("stdio rpath proc exec", NULL) == -1)
-		die("pledge");
-#endif /* __OpenBSD__ */
-	scan();
-	run();
-	cleanup();
-	XCloseDisplay(dpy);
-	if (restart)
-		execvp(argv[0], argv);
-	return EXIT_SUCCESS;
+	Client *at;
+
+	if (c->idx > 0) { /* then the client has a designated position in the client list */
+		for (at = c->mon->clients; at; at = at->next) {
+			if (c->idx < at->idx) {
+				c->next = at;
+				c->mon->clients = c;
+				return;
+			} else if (at->idx <= c->idx && (!at->next || c->idx <= at->next->idx)) {
+				c->next = at->next;
+				at->next = c;
+				return;
+			}
+		}
+	}
+
+	attach(c); // master (default)
 }
 
+static void (*handler[LASTEvent]) (XEvent *) = {
+	[ButtonPress] = buttonpress,
+	[ClientMessage] = clientmessage,
+	[ConfigureRequest] = configurerequest,
+	[ConfigureNotify] = configurenotify,
+	[DestroyNotify] = destroynotify,
+	[EnterNotify] = enternotify,
+	[Expose] = expose,
+	[FocusIn] = focusin,
+	[KeyPress] = keypress,
+	[KeyRelease] = keyrelease,
+	[MappingNotify] = mappingnotify,
+	[MapRequest] = maprequest,
+	[MotionNotify] = motionnotify,
+	[PropertyNotify] = propertynotify,
+	[ResizeRequest] = resizerequest,
+	[UnmapNotify] = unmapnotify
+};
+
+void
+resizemouse(const Arg *arg)
+{
+	int ocx, ocy, nw, nh, nx, ny;
+	int opx, opy;
+	unsigned int dui;
+	Window dummy;
+	Client *c;
+	Monitor *m;
+	XEvent ev;
+	Time lasttime = 0;
+
+	if (!(c = selmon->sel))
+		return;
+	if (c->isfullscreen) /* no support resizing fullscreen windows by mouse */
+		return;
+	restack(selmon);
+	nx = ocx = c->x;
+	ny = ocy = c->y;
+	nh = c->h;
+	nw = c->w;
+	if (!XQueryPointer(dpy, c->win, &dummy, &dummy, &opx, &opy, &nx, &ny, &dui))
+		return;
+	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
+		None, cursor[CurResizeBR]->cursor, CurrentTime) != GrabSuccess)
+		return;
+	XWarpPointer (dpy, None, c->win, 0, 0, 0, 0,
+			(c->w + c->bw - 1),
+			(c->h + c->bw - 1));
+	ignoreconfigurerequests = 1;
+	do {
+		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
+		switch(ev.type) {
+		case ConfigureRequest:
+		case Expose:
+		case MapRequest:
+			handler[ev.type](&ev);
+			break;
+		case MotionNotify:
+			if ((ev.xmotion.time - lasttime) <= (1000 / refreshrate_resize))
+				continue;
+			lasttime = ev.xmotion.time;
+
+			nx = c->x;
+			ny = c->y;
+			nw = ev.xmotion.x - ocx - 2 * c->bw + 1;
+			nh = ev.xmotion.y - ocy - 2 * c->bw + 1;
+			if (c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
+			&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
+			{
+				if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
+				&& (abs(nw - c->w) > snap || abs(nh - c->h) > snap)) {
+					togglefloating(NULL);
+				}
+			}
+			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
+				resize(c, nx, ny, nw, nh, 1);
+			}
+			break;
+		}
+	} while (ev.type != ButtonRelease);
+
+	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0,
+			(c->w + c->bw - 1),
+			(c->h + c->bw - 1));
+	XUngrabPointer(dpy, CurrentTime);
+	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
+	if ((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
+		sendmon(c, m);
+		selmon = m;
+		focus(NULL);
+	}
+	ignoreconfigurerequests = 0;
+}
+
+void
+run(void)
+{
+	XEvent ev;
+	XSync(dpy, False);
+	/* main event loop */
+	while (running) {
+		struct pollfd pfd = {
+			.fd = ConnectionNumber(dpy),
+			.events = POLLIN,
+		};
+		int pending = XPending(dpy) > 0 || poll(&pfd, 1, -1) > 0;
+
+		if (!running)
+			break;
+		if (!pending)
+			continue;
+
+		XNextEvent(dpy, &ev);
+		if (handler[ev.type])
+			handler[ev.type](&ev); /* call handler */
+	}
+}
+
+#endif //DWM_H
