@@ -2,6 +2,7 @@ Completion:
   ArgumentLists: None
 CompileFlags:
   Add:
+    - -DVERSION="dev"
     - -xc
     - -I/usr/include/freetype2
     - -I/usr/include/libpng16
