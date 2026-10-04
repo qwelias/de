@@ -1289,8 +1289,8 @@ readvolmute(char* buf, double* vol, int* mute) {
 }
 
 void
-audio_update(void) {
-    // fprintf(stderr, "audio_update\n");
+bar_audio_update(void) {
+    // fprintf(stderr, "bar_audio_update\n");
     char buf[16] = {0};
     double sinkvol = 0;
     int sinkm = 0;
@@ -1299,11 +1299,11 @@ audio_update(void) {
     spawn_capture(&(Arg){ .v = wpctlsink }, buf, sizeof(buf) - 1);
     readvolmute(buf, &sinkvol, &sinkm);
     memset(buf, 0, sizeof(buf));
-    // fprintf(stderr, "audio_update: sink %d %s\n", sinkm, buf);
+    // fprintf(stderr, "bar_audio_update: sink %d %s\n", sinkm, buf);
 
     spawn_capture(&(Arg){ .v = wpctlsource }, buf, sizeof(buf) - 1);
     readvolmute(buf, NULL, &sourcem);
-    // fprintf(stderr, "audio_update: source %d %s\n", sourcem, buf);
+    // fprintf(stderr, "bar_audio_update: source %d %s\n", sourcem, buf);
 
     snprintf(audio_txt, sizeof(audio_txt), 
         "%s%s%03d",
@@ -1442,7 +1442,7 @@ static unsigned int bat_perfi = 0;
 static char bat_wasdischarging = 0;
 
 static void
-setpower(char* mode, char* notif) {
+bar_bat_setpower(char* mode, char* notif) {
 	spawn(&(Arg){ .v = (char*[]){ "powerprofilesctl", "set", mode, NULL } });
 	spawn(&(Arg){ .v = (char*[]){ "notify-send", "-h", "STRING:x-dunst-stack-tag:power", "-u", "low", notif, NULL } });
 }
@@ -1476,13 +1476,13 @@ int bar_bat_draw(Bar *bar, BarArg *a)
 int bar_bat_click(Bar *bar, Arg *arg, BarArg *a)
 {
 	bat_dirty = 1;
-	if (arg->i == Button1) setpower("balanced", "󱐋 balanced");
-	else if (arg->i == Button2) setpower("performance", "󱐋 performance");
-	else if (arg->i == Button3) setpower("power-saver", "󱐋 power-saver");
+	if (arg->i == Button1) bar_bat_setpower("balanced", "󱐋 balanced");
+	else if (arg->i == Button2) bar_bat_setpower("performance", "󱐋 performance");
+	else if (arg->i == Button3) bar_bat_setpower("power-saver", "󱐋 power-saver");
 	return -1;
 }
 
-void bat_update(void) {
+void bar_bat_update(void) {
 	if (!bat_txt[0]) return;
 
 	FILE *f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
@@ -1543,8 +1543,8 @@ void bat_update(void) {
 	else if (isdischarging) bat_color = 8;
 
 	if (bat_wasdischarging != isdischarging) {
-		if (isdischarging) setpower("power-saver", "󱐋 power-saver");
-		else setpower("balanced", "󱐋 balanced");
+		if (isdischarging) bar_bat_setpower("power-saver", "󱐋 power-saver");
+		else bar_bat_setpower("balanced", "󱐋 balanced");
 		bat_wasdischarging = isdischarging;
 		bat_dirty = 1;
 	}
@@ -2219,12 +2219,12 @@ static size_t sleepcounter = 0;
 static const BarUpdateSet barupdates[] = {
 	{ 3, bar_util_update, NULL, "system_stats_update" },
 	{ 3, bar_time_update, NULL, "bar_time_update" },
-	{ 3, bat_update, &bat_dirty, "bat_update" },
-	{ 10, audio_update, &audio_dirty, "audio_update" },
+	{ 3, bar_bat_update, &bat_dirty, "bar_bat_update" },
+	{ 10, bar_audio_update, &audio_dirty, "bar_audio_update" },
 };
 
 static int
-runupdates(int force)
+loop_runupdates(int force)
 {
 	int redraw = 0;
 	const BarUpdateSet *bu;
@@ -2244,7 +2244,7 @@ runupdates(int force)
 }
 
 void
-triggerstatusbar(void)
+loop_triggerstatusbar(void)
 {
 	XEvent ev;
 	memset(&ev, 0, sizeof(ev));
@@ -2258,16 +2258,16 @@ triggerstatusbar(void)
 }
 
 void *
-init_bar_loop(void *arg)
+loop_init(void *arg)
 {
-	runupdates(1);
+	loop_runupdates(1);
 
 	while (1) {
 		sleep(1);
 		sleepcounter++;
 
-		if (runupdates(0)) {
-			triggerstatusbar();
+		if (loop_runupdates(0)) {
+			loop_triggerstatusbar();
 		}
 	}
 	return NULL;
@@ -4766,7 +4766,7 @@ setup(void)
 	XChangeWindowAttributes(dpy, root, CWEventMask|CWCursor, &wa);
 	XSelectInput(dpy, root, wa.event_mask);
 
-	if (pthread_create(&barloopth, NULL, init_bar_loop, NULL) != 0) {
+	if (pthread_create(&barloopth, NULL, loop_init, NULL) != 0) {
 		die("dwm: Could not create barloopth\n");
 	}
 	pthread_detach(barloopth);
