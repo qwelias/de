@@ -477,8 +477,8 @@ static char c000000[]                    = "#000000"; // placeholder value
 
 static char normfgcolor[]                = "#f8f8f2";
 static char normbgcolor[]                = "#272822";
-static char normbordercolor[]            = "#272822";
-static char normfloatcolor[]             = "#272822";
+static char normbordercolor[]            = "#1e201a";
+static char normfloatcolor[]             = "#1e201a";
 
 static char selfgcolor[]                 = "#1d1e19";
 static char selbgcolor[]                 = "#e6db74";
@@ -559,9 +559,9 @@ static const Rule rules[] = {
 	 *	WM_WINDOW_ROLE(STRING) = role
 	 *	_NET_WM_WINDOW_TYPE(ATOM) = wintype
 	 */
-	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1, .floatpos = "100%   0% 800W 300H"},
-	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1, .floatpos = "88%   0% 255W 550H"},
-	{ .monitor = -1, .title = "TIMES", .isfloating = 1, .floatpos = "88%   0% 365W 210H"},
+	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1},
+	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1},
+	{ .monitor = -1, .title = "TIMES", .isfloating = 1},
 	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1},
 	{ .monitor = -1, .title = "Delta Chat", .isfloating = 1},
 	{ .monitor = -1, .title = "Karing", .isfloating = 1},
@@ -576,9 +576,9 @@ static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] 
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
-static const int refreshrate_resize = 6;  /* refresh rate (per second) for client resize */
-static const int refreshrate_dragmfact = 6; /* refresh rate (per second) for dragmfact */
-static const int refreshrate_dragcfact = 6; /* refresh rate (per second) for dragcfact */
+static const int refreshrate_resize = 12;  /* refresh rate (per second) for client resize */
+static const int refreshrate_dragmfact = 12; /* refresh rate (per second) for dragmfact */
+static const int refreshrate_dragcfact = 12; /* refresh rate (per second) for dragcfact */
 
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = {
@@ -591,7 +591,7 @@ static const char *dmenucmd[] = {
 	"-sf", selfgcolor,
 	NULL
 };
-static const char *termcmd[]  = { "ghostty", NULL };
+static const char *termcmd[]  = { "st", NULL };
 
 static const char *brighter[] = { "brightnessctl", "set", "10%+", NULL };
 static const char *dimmer[]   = { "brightnessctl", "set", "10%-", NULL };
@@ -602,7 +602,7 @@ static const char *maimss[]   = { "maimpick.sh", "ss", NULL };
 static const char *maimocr[]  = { "maimpick.sh", "ocr", NULL };
 static const char *switchsink[]  = { "switch_sink.sh", NULL };
 static const char *suspend[]  = { "systemctl", "suspend", NULL };
-static const char *clicks[]  = { "xdotool", "click", "--repeat", "100", "--delay", "30", "1", NULL };
+static const char *clicks[]  = { "clicks.sh", NULL };
 
 static const Layout speciallt = { ": : :",      gaplessgrid };
 static const Layout layouts[] = {
@@ -713,23 +713,23 @@ static const Button buttons[] = {
 	{ ClkLtSymbol,          0,                     Button1,       NULL,            setlayout,      {.v = &speciallt } },
 	{ ClkLtSymbol,          0,                     Button3,       NULL,            swaplayout,     {.v = &layouts_swap } },
 	{ ClkWinTitle,          0,                     Button1,       NULL,            moveorplace,    {.i = 1} },
-	{ ClkWinTitle,          0,                     Button2,       NULL,            killclient, {0} },
+	{ ClkWinTitle,          0,                     Button2,       NULL,            killclient,     {0} },
 	{ ClkWinTitle,          0,                     Button3,       NULL,            resizemouse,    {0} },
 	{ ClkWinTitle,          0,                     Button4,       NULL,            focusstack,     {.i = -1} },
 	{ ClkWinTitle,          0,                     Button5,       NULL,            focusstack,     {.i = +1} },
-	{ ClkClientWin,         Mod4Mask|Mod1Mask,     Button1,       NULL,            spawn,          { .v = clicks } },
+	{ ClkClientWin,         Mod4Mask|Mod1Mask,     Button3,       NULL,            spawn,          { .v = clicks } },
 	{ ClkClientWin,         Mod4Mask,              Button1,       NULL,            moveorplace,    {.i = 1} },
-	{ ClkClientWin,         Mod4Mask,              Button2,       NULL,            togglefloating, {0} },
+	{ ClkClientWin,         Mod4Mask,              Button2,       NULL,            killclient,     {0} },
 	{ ClkClientWin,         Mod4Mask,              Button3,       NULL,            resizemouse,    {0} },
-	{ ClkClientWin,         0,                     Button1,       &speciallt,     setlayout,      { .v = &layouts[2] } },
-	{ ClkClientWin,         0,                     Button2,       &speciallt,     killclient,     {0} },
-	{ ClkClientWin,         0,                     Button3,       &speciallt,     setlayout,      { .v = &layouts[2] } },
+	{ ClkClientWin,         0,                     Button1,       &speciallt,     setlayout,       { .v = &layouts[2] } },
+	{ ClkClientWin,         0,                     Button2,       &speciallt,     killclient,      {0} },
+	{ ClkClientWin,         0,                     Button3,       &speciallt,     setlayout,       { .v = &layouts[2] } },
 	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button3,       NULL,            dragcfact,      {0} },
 	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button1,       NULL,            dragmfact,      {0} },
 	{ ClkTagBar,            0,                     Button1,       NULL,            view,           {0} },
 	{ ClkTagBar,            0,                     Button3,       NULL,            toggleview,     {0} },
-	{ ClkTagBar,            0,                     Button4,       NULL,            shiftview,       { .i = -1 } },
-	{ ClkTagBar,            0,                     Button5,       NULL,            shiftview,       { .i = +1 } },
+	{ ClkTagBar,            0,                     Button4,       NULL,            shiftview,      { .i = -1 } },
+	{ ClkTagBar,            0,                     Button5,       NULL,            shiftview,      { .i = +1 } },
 	{ ClkTagBar,            ShiftMask,             Button4,       NULL,            shifttag,       { .i = -1 } },
 	{ ClkTagBar,            ShiftMask,             Button5,       NULL,            shifttag,       { .i = +1 } },
 	{ ClkTagBar,            Mod4Mask,              Button1,       NULL,            tag,            {0} },
@@ -1246,7 +1246,7 @@ static int audio_dirty = 1;
 static double audio_width = 5;
 static char audio_txt[15] = " X X 000  ";
 static unsigned int audio_color = 1;
-static const char* wiremix[] = { "ghostty", "--title=WIREMIX", "--confirm-close-surface=false", "-e", "wiremix", NULL };
+static const char* wiremix[] = { "st", "-tWIREMIX", "-e", "wiremix", NULL };
 static const char* wpctlsink[] = { "wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@", NULL };
 static const char* wpctlsinkm[] = { "wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle", NULL };
 static const char* wpctlsinki[] = { "wpctl", "inspect", "@DEFAULT_AUDIO_SINK@", NULL };
@@ -2167,8 +2167,8 @@ void bar_util_update(void) {
 #pragma region bar_time
 static double time_width = 9;
 static char time_txt[21] = "  WEK DD MON HH:MM  ";
-static const char* calendar[] = { "ghostty", "--window-padding-x=20,0", "--window-padding-y=20,0", "--title=CALENDAR", "--confirm-close-surface=false", "--cursor-opacity=0", "-e", "bash", "-c", "cal -3c1; exec sleep 100", NULL };
-static const char* times[] = { "ghostty", "--window-padding-x=20,0", "--window-padding-y=17,0", "--title=TIMES", "--confirm-close-surface=false", "--cursor-opacity=0", "-e", "bash", "-c", "~/script/times.sh; exec sleep 100", NULL };
+static const char* calendar[] = { "st", "-tCALENDAR", "-g24x28", "-e", "bash", "-c", "echo ''; cal -3c1 | sed 's/^/  /'; exec sleep 100", NULL };
+static const char* times[] = { "st", "-tTIMES", "-g35x10", "-e", "bash", "-c", "echo''; ~/script/times.sh | sed 's/^/  /'; exec sleep 100", NULL };
 
 static int
 killpopups(void) {
@@ -3563,6 +3563,7 @@ enternotify(XEvent *e)
 	} else if (!c || c == selmon->sel)
 		return;
 	focus(c);
+	restack(m);
 }
 
 void
