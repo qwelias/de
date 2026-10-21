@@ -61,8 +61,6 @@
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
-#define WIDTH(X)                ((X)->w + 2 * (X)->bw)
-#define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define HIDDEN(C)               ((getstate(C->win) == IconicState))
 
@@ -572,7 +570,7 @@ static const Rule rules[] = {
 };
 
 /* layout(s) */
-static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
+static const float mfact     = 0.66; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
@@ -1722,8 +1720,8 @@ setfloatpos(Client *c, const char *floatpos)
 	ww = c->mon->ww;
 	wh = c->mon->wh;
 
-	getfloatpos(x, xCh, w, wCh, wx, ww, c->x, c->w, c->bw, floatposgrid_x, &c->x, &c->w);
-	getfloatpos(y, yCh, h, hCh, wy, wh, c->y, c->h, c->bw, floatposgrid_y, &c->y, &c->h);
+	getfloatpos(x, xCh, w, wCh, wx, ww, c->x, c->w, 0, floatposgrid_x, &c->x, &c->w);
+	getfloatpos(y, yCh, h, hCh, wy, wh, c->y, c->h, 0, floatposgrid_y, &c->y, &c->h);
 }
 
 void
@@ -2783,21 +2781,21 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 	*h = MAX(1, *h);
 	if (interact) {
 		if (*x > sw)
-			*x = sw - WIDTH(c);
+			*x = sw - c->w;
 		if (*y > sh)
-			*y = sh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw < 0)
+			*y = sh - c->h;
+		if (*x + *w < 0)
 			*x = 0;
-		if (*y + *h + 2 * c->bw < 0)
+		if (*y + *h < 0)
 			*y = 0;
 	} else {
 		if (*x >= m->wx + m->ww)
-			*x = m->wx + m->ww - WIDTH(c);
+			*x = m->wx + m->ww - c->w;
 		if (*y >= m->wy + m->wh)
-			*y = m->wy + m->wh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw <= m->wx)
+			*y = m->wy + m->wh - c->h;
+		if (*x + *w <= m->wx)
 			*x = m->wx;
-		if (*y + *h + 2 * c->bw <= m->wy)
+		if (*y + *h <= m->wy)
 			*y = m->wy;
 	}
 	if (*h < bh)
@@ -3203,8 +3201,6 @@ configure(Client *c)
 	// fprintf(stderr, "configure: %d : %d : %d : %d %s\n", c->x, c->y, c->w, c->h, c->name);
 
 	if (noborder(c)) {
-		ce.width += c->bw * 2;
-		ce.height += c->bw * 2;
 		ce.border_width = 0;
 	}
 
@@ -3277,11 +3273,11 @@ configurerequest(XEvent *e)
 			}
 			if (c->isfloating) {
 				if (!c->isfullscreen) {
-					c->x = m->wx + (m->ww / 2 - WIDTH(c) / 2);  /* center in x direction */
+					c->x = m->wx + (m->ww / 2 - c->w / 2);  /* center in x direction */
 					c->y = m->wy; /* top in y direction */
 				} else {
-					c->x = m->mx + (m->mw / 2 - WIDTH(c) / 2);  /* center in x direction */
-					c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
+					c->x = m->mx + (m->mw / 2 - c->w / 2);  /* center in x direction */
+					c->y = m->my + (m->mh / 2 - c->h / 2); /* center in y direction */
 				}
 			}
 			if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
@@ -3898,6 +3894,7 @@ manage(Window w, XWindowAttributes *wa)
 	c->w = c->oldw = wa->width;
 	c->h = c->oldh = wa->height;
 	c->oldbw = wa->border_width;
+	c->bw = borderpx;
 	c->cfact = 1.0;
 	settings_restored = restoreclientstate(c);
 	updatetitle(c);
@@ -3905,7 +3902,6 @@ manage(Window w, XWindowAttributes *wa)
 	if (XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {
 		c->mon = t->mon;
 		c->tags = t->tags;
-		c->bw = borderpx;
 		c->iscentered = 1;
 	} else {
 		if (!settings_restored || c->mon == NULL) {
@@ -3914,20 +3910,17 @@ manage(Window w, XWindowAttributes *wa)
 		}
 		if (c->x == c->mon->wx && c->y == c->mon->wy)
 			c->iscentered = 1;
-		c->bw = borderpx;
 		if (!settings_restored)
 			applyrules(c);
 	}
 
-	if (c->x + WIDTH(c) > c->mon->wx + c->mon->ww)
-		c->x = c->mon->wx + c->mon->ww - WIDTH(c);
-	if (c->y + HEIGHT(c) > c->mon->wy + c->mon->wh)
-		c->y = c->mon->wy + c->mon->wh - HEIGHT(c);
+	if (c->x + c->w > c->mon->wx + c->mon->ww)
+		c->x = c->mon->wx + c->mon->ww - c->w;
+	if (c->y + c->h > c->mon->wy + c->mon->wh)
+		c->y = c->mon->wy + c->mon->wh - c->h;
 	c->x = MAX(c->x, c->mon->wx);
 	c->y = MAX(c->y, c->mon->wy);
 
-	wc.border_width = c->bw;
-	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	if (c->isfloating)
 		XSetWindowBorder(dpy, w, scheme[SchemeNorm][ColFloat].pixel);
 	else
@@ -3938,7 +3931,7 @@ manage(Window w, XWindowAttributes *wa)
 
 	c->iscentered = c->iscentered || c->isfloating;
 	if (c->iscentered) {
-		c->x = c->mon->wx + (c->mon->ww - WIDTH(c)) / 2;
+		c->x = c->mon->wx + (c->mon->ww - c->w) / 2;
 		c->y = c->mon->wy;
 	}
 
@@ -3967,6 +3960,9 @@ manage(Window w, XWindowAttributes *wa)
 	XMapWindow(dpy, c->win);
 	focus(NULL);
 
+	wc.border_width = c->bw;
+	// TODO broken
+	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 }
 
 void
@@ -4098,12 +4094,12 @@ movemouse(const Arg *arg)
 			ny = ocy + (ev.xmotion.y - y);
 			if (abs(selmon->wx - nx) < snap)
 				nx = selmon->wx;
-			else if (abs((selmon->wx + selmon->ww) - (nx + WIDTH(c))) < snap)
-				nx = selmon->wx + selmon->ww - WIDTH(c);
+			else if (abs((selmon->wx + selmon->ww) - (nx + c->w)) < snap)
+				nx = selmon->wx + selmon->ww - c->w;
 			if (abs(selmon->wy - ny) < snap)
 				ny = selmon->wy;
-			else if (abs((selmon->wy + selmon->wh) - (ny + HEIGHT(c))) < snap)
-				ny = selmon->wy + selmon->wh - HEIGHT(c);
+			else if (abs((selmon->wy + selmon->wh) - (ny + c->h)) < snap)
+				ny = selmon->wy + selmon->wh - c->h;
 			if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
 			&& (abs(nx - c->x) > snap || abs(ny - c->y) > snap)) {
 				togglefloating(NULL);
@@ -4246,14 +4242,24 @@ resizeclient(Client *c, int x, int y, int w, int h)
 {
 	XWindowChanges wc;
 
+	// box-sizing is weird on XWindowChanges
+	// x,y are always the topmost leftmost coordinates including the border
+	// height, width are not including the border
+	// initial dwm impl was doing box-sizing:content-box
+	// which is very awkward because you have to additionally account for border everywhere
+	// whenever you're doing client sizing
+	// i've converted it to box-sizing:border-box
+	// so w,h assume border, so we just have to subtract it in one place = here
+	// the downside is that it's possible to end up with negative width/height
+	// TODO handle it somehow
 	c->oldx = c->x; c->x = wc.x = x;
 	c->oldy = c->y; c->y = wc.y = y;
-	c->oldw = c->w; c->w = wc.width = w;
-	c->oldh = c->h; c->h = wc.height = h;
+	c->oldw = c->w; c->w = w; wc.width = w - c->bw*2;
+	c->oldh = c->h; c->h = h; wc.height = h - c->bw*2;
 	wc.border_width = c->bw;
 	if (noborder(c)) {
-		wc.width += c->bw * 2;
-		wc.height += c->bw * 2;
+		wc.width = w;
+		wc.height = h;
 		wc.border_width = 0;
 	}
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
@@ -4288,8 +4294,8 @@ resizemouse(const Arg *arg)
 		None, cursor[CurResizeBR]->cursor, CurrentTime) != GrabSuccess)
 		return;
 	XWarpPointer (dpy, None, c->win, 0, 0, 0, 0,
-			(c->w + c->bw - 1),
-			(c->h + c->bw - 1));
+			(c->w - 1),
+			(c->h - 1));
 	ignoreconfigurerequests = 1;
 	do {
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
@@ -4306,8 +4312,8 @@ resizemouse(const Arg *arg)
 
 			nx = c->x;
 			ny = c->y;
-			nw = ev.xmotion.x - ocx - 2 * c->bw + 1;
-			nh = ev.xmotion.y - ocy - 2 * c->bw + 1;
+			nw = ev.xmotion.x - ocx + 1;
+			nh = ev.xmotion.y - ocy + 1;
 			if (c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
 			&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
 			{
@@ -4323,9 +4329,6 @@ resizemouse(const Arg *arg)
 		}
 	} while (ev.type != ButtonRelease);
 
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0,
-			(c->w + c->bw - 1),
-			(c->h + c->bw - 1));
 	XUngrabPointer(dpy, CurrentTime);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	if ((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
@@ -4805,7 +4808,7 @@ showhide(Client *c)
 	} else {
 		/* hide clients bottom up */
 		showhide(c->snext);
-		XMoveWindow(dpy, c->win, WIDTH(c) * -2, c->y);
+		XMoveWindow(dpy, c->win, c->w * -2, c->y);
 	}
 }
 
@@ -5216,12 +5219,10 @@ updatesizehints(Client *c)
 void
 updatetitle(Client *c)
 {
-
 	if (!gettextprop(c->win, netatom[NetWMName], c->name, sizeof c->name))
 		gettextprop(c->win, XA_WM_NAME, c->name, sizeof c->name);
 	if (c->name[0] == '\0') /* hack to mark broken clients */
 		strcpy(c->name, broken);
-
 }
 
 void
@@ -5347,7 +5348,7 @@ zoom(const Arg *arg)
 void
 tile(Monitor *m)
 {
-	unsigned int i, n, h, mw, my, ty;
+	unsigned int i, n, x, y, w, h, mw, my, ty;
 	Client *c;
 
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
@@ -5357,18 +5358,29 @@ tile(Monitor *m)
 		mw = m->nmaster ? m->ww * m->mfact : 0;
 	else
 		mw = m->ww;
+	// fprintf(stderr, "tile: n=%d, nm=%d, wh=%d, wy=%d\n", n, m->nmaster, m->wh, m->wy);
 
 	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
 		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
-			if (my + HEIGHT(c) < m->wh)
-				my += HEIGHT(c);
+			x = m->wx;
+			y = m->wy + my;
+			w = mw;
+			h = ((m->wh - my) / (MIN(n, m->nmaster) - i));
+			resize(c, x, y, w, h, 0);
+			if (my + h < m->wh)
+				my += h;
 		} else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
-			if (ty + HEIGHT(c) < m->wh)
-					ty += HEIGHT(c);
+			// offset by border width to avoid double border, TODO handle nmaster>1
+			x = m->wx + mw - c->bw;
+			w = m->ww - mw + c->bw;
+			y = m->wy + ty;
+			h = ((m->wh - ty) / (n - i));
+			// fprintf(stderr, "tile: i=%d, ty=%d, y=%d, h=%d\n", i, ty, y, h);
+			resize(c, x, y, w, h, 0);
+			if (ty + h < m->wh) {
+				// offset by border width to avoid double border
+				ty += h - c->bw;
+			}
 		}
 }
 
@@ -5385,7 +5397,7 @@ monocle(Monitor *m)
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[ %d ]", n);
 
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
-		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
+		resize(c, m->wx, m->wy, m->ww, m->wh, 0);
 }
 
 void
@@ -5430,8 +5442,8 @@ gaplessgrid(Monitor *m)
 		resize(c,
 			x,
 			y + rn*(ch + ih) + MIN(rn, rrest),
-			cw + (cn < crest ? 1 : 0) - 2*c->bw,
-			ch + (rn < rrest ? 1 : 0) - 2*c->bw,
+			cw + (cn < crest ? 1 : 0),
+			ch + (rn < rrest ? 1 : 0),
 			0);
 		rn++;
 		if (rn >= rows) {
@@ -5494,7 +5506,7 @@ placemouse(const Arg *arg)
 	ocy = wa.y;
 
 	if (arg->i == 2) // warp cursor to client center
-		XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, WIDTH(c) / 2, HEIGHT(c) / 2);
+		XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w / 2, c->h / 2);
 
 	if (!getrootptr(&x, &y))
 		return;
