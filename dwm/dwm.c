@@ -398,7 +398,7 @@ static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizerequest(XEvent *e);
 static void resizemouse(const Arg *arg);
-static void restack(Monitor *m);
+static void restack(Monitor *m, int simple);
 static void run(void);
 static void scan(void);
 static int sendevent(Window w, Atom proto, int m, long d0, long d1, long d2, long d3, long d4);
@@ -720,6 +720,7 @@ static const char broken[] = "broken";
 static pthread_t barloopth;
 
 static int keypressed;
+static int btnpressed;
 
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
@@ -2897,7 +2898,7 @@ arrange(Monitor *m)
 		showhide(m->stack);
 	if (m) {
 		arrangemon(m);
-		restack(m);
+		restack(m, 0);
 	} else for (m = mons; m; m = m->next)
 		arrangemon(m);
 }
@@ -2993,11 +2994,12 @@ buttonpress(XEvent *e)
 
 	if (click == ClkRootWin && (c = wintoclient(ev->window))) {
 		focus(c);
-		restack(selmon);
+		restack(selmon, 1);
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		click = ClkClientWin;
 	}
 
+	btnpressed = ev->button;
 	for (i = 0; i < LENGTH(buttons); i++) {
 		if (
 			click == buttons[i].click &&
@@ -3536,8 +3538,7 @@ enternotify(XEvent *e)
 	} else if (!c || c == selmon->sel)
 		return;
 	focus(c);
-	XRaiseWindow(dpy, c->win);
-	XSync(dpy, False);
+	restack(m, 1);
 }
 
 void
@@ -3628,8 +3629,7 @@ focusstack(const Arg *arg)
 	}
 	if (c) {
 		focus(c);
-		XRaiseWindow(dpy, c->win);
-		XSync(dpy, False);
+		restack(selmon, 1);
 	}
 }
 
@@ -3783,6 +3783,7 @@ keypress(XEvent *e)
 	ev = &e->xkey;
 	keysym = XGetKeyboardMapping(dpy, (KeyCode)ev->keycode, 1, &keysyms_return);
 	keypressed = *keysym;
+	btnpressed = 0;
 	for (i = 0; i < LENGTH(keys); i++) {
 		if (*keysym == keys[i].keysym
 				&& keys[i].ev == KeyPress
@@ -3810,6 +3811,7 @@ keyrelease(XEvent *e)
 			*keysym == keys[i].keysym
 			&& keys[i].ev == KeyRelease
 			&& keys[i].func
+			&& !btnpressed
 		) {
 			if (keypressed && keypressed != keys[i].keysym) {
 				keypressed = 0;
@@ -4035,7 +4037,7 @@ movemouse(const Arg *arg)
 		return;
 	if (c->isfullscreen) /* no support moving fullscreen windows by mouse */
 		return;
-	restack(selmon);
+	restack(selmon, 1);
 	nx = ocx = c->x;
 	ny = ocy = c->y;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -4249,7 +4251,7 @@ resizemouse(const Arg *arg)
 		return;
 	if (c->isfullscreen) /* no support resizing fullscreen windows by mouse */
 		return;
-	restack(selmon);
+	restack(selmon, 1);
 	nx = ocx = c->x;
 	ny = ocy = c->y;
 	nh = c->h;
@@ -4305,19 +4307,25 @@ resizemouse(const Arg *arg)
 	ignoreconfigurerequests = 0;
 }
 
+// TODO simplify and move out drawbar
+// for tiling windows it should be enough to put the selected under the barwin
+// for floating just raise
+// full restack is needed only when all windows were affected such as on tag/lt change
 void
-restack(Monitor *m)
+restack(Monitor *m, int simple)
 {
 	// fprintf(stderr, "restack\n");
 	Client *c, *f = NULL;
 	XEvent ev;
 	XWindowChanges wc;
 
-	drawbar(m);
+	if (!simple) drawbar(m);
 	if (!m->sel)
 		return;
-	if (m->sel->isfloating || !m->lt[m->sellt]->arrange)
+	if (m->sel->isfloating || !m->lt[m->sellt]->arrange) {
 		XRaiseWindow(dpy, m->sel->win);
+		if (simple) return;
+	}
 
 	if (m->lt[m->sellt]->arrange) {
 		wc.stack_mode = Below;
@@ -5404,7 +5412,7 @@ placemouse(const Arg *arg)
 		return;
 	if (c->isfullscreen) /* no support placing fullscreen windows by mouse */
 		return;
-	restack(selmon);
+	restack(selmon, 0);
 	prevr = c;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 		None, cursor[CurMove]->cursor, CurrentTime) != GrabSuccess)
@@ -5574,7 +5582,7 @@ dragcfact(const Arg *arg)
 	}
 	if (c->isfullscreen) /* no support resizing fullscreen windows by mouse */
 		return;
-	restack(selmon);
+	restack(selmon, 1);
 
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 		None, cursor[CurIronCross]->cursor, CurrentTime) != GrabSuccess)
