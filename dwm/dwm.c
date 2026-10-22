@@ -2252,7 +2252,7 @@ loop_triggerstatusbar(void)
 	ev.xclient.format = 32;
 
 	XSendEvent(dpy, root, False, StructureNotifyMask, &ev);
-	XFlush(dpy);
+	XSync(dpy, False);
 }
 
 void *
@@ -2878,11 +2878,11 @@ shiftview(const Arg *arg)
 	Arg next = shifted;
 	int i = arg->i;
 	int incr = i > 0 ? 1 : -1;
-	fprintf(stderr, "shiftview: i %d \n", i);
+	// fprintf(stderr, "shiftview: i %d \n", i);
 
 	do {
 		unsigned int ctags = next.ui & TAGMASK;
-		fprintf(stderr, "shiftview: ctags %d \n", ctags);
+		// fprintf(stderr, "shiftview: ctags %d \n", ctags);
 		for (c = selmon->clients; c; c = c->next) {
 			if (c->tags & ctags) {
 				view(&next);
@@ -2890,7 +2890,7 @@ shiftview(const Arg *arg)
 			}
 		}
 		i += incr;
-		fprintf(stderr, "shiftview: i %d \n", i);
+		// fprintf(stderr, "shiftview: i %d \n", i);
 		next = shift(&(Arg){ .i = i }, 0);
 	} while (next.ui != shifted.ui);
 	view(&shifted);
@@ -3198,11 +3198,11 @@ configure(Client *c)
 	ce.width = c->w;
 	ce.height = c->h;
 	ce.border_width = c->bw;
-	// fprintf(stderr, "configure: %d : %d : %d : %d %s\n", c->x, c->y, c->w, c->h, c->name);
-
+	
 	if (noborder(c)) {
 		ce.border_width = 0;
 	}
+	// fprintf(stderr, "configure: %s, border_width=%d\n", c->name, ce.border_width);
 
 	ce.above = None;
 	ce.override_redirect = False;
@@ -3250,10 +3250,10 @@ configurerequest(XEvent *e)
 		return;
 
 	if ((c = wintoclient(ev->window))) {
-		// fprintf(stderr, "configurerequest: %d : %s\n", c->isfloating, c->name);
-		if (ev->value_mask & CWBorderWidth)
+		if (ev->value_mask & CWBorderWidth) {
+			// fprintf(stderr, "configurerequest: %s, border_width=%d\n", c->name, ev->border_width);
 			c->bw = ev->border_width;
-		else if (c->isfloating || !selmon->lt[selmon->sellt]->arrange) {
+		} else if (c->isfloating || !selmon->lt[selmon->sellt]->arrange) {
 			m = c->mon;
 			if (ev->value_mask & CWX) {
 				c->oldx = c->x;
@@ -3292,6 +3292,7 @@ configurerequest(XEvent *e)
 		wc.width = ev->width;
 		wc.height = ev->height;
 		wc.border_width = ev->border_width;
+		// fprintf(stderr, "configurerequest: border_width=%d\n", ev->border_width);
 		wc.sibling = ev->above;
 		wc.stack_mode = ev->detail;
 		XConfigureWindow(dpy, ev->window, ev->value_mask, &wc);
@@ -3559,7 +3560,8 @@ enternotify(XEvent *e)
 	} else if (!c || c == selmon->sel)
 		return;
 	focus(c);
-	restack(m);
+	XRaiseWindow(dpy, c->win);
+	XSync(dpy, False);
 }
 
 void
@@ -3650,7 +3652,8 @@ focusstack(const Arg *arg)
 	}
 	if (c) {
 		focus(c);
-		restack(selmon);
+		XRaiseWindow(dpy, c->win);
+		XSync(dpy, False);
 	}
 }
 
@@ -3895,6 +3898,7 @@ manage(Window w, XWindowAttributes *wa)
 	c->h = c->oldh = wa->height;
 	c->oldbw = wa->border_width;
 	c->bw = borderpx;
+	// fprintf(stderr, "manage: %s border_width=%d\n", c->name, wa->border_width);
 	c->cfact = 1.0;
 	settings_restored = restoreclientstate(c);
 	updatetitle(c);
@@ -3960,8 +3964,8 @@ manage(Window w, XWindowAttributes *wa)
 	XMapWindow(dpy, c->win);
 	focus(NULL);
 
-	wc.border_width = c->bw;
-	// TODO broken
+	// TODO this already happens in configure but not handled in configurenotify
+	if (noborder(c)) wc.border_width = 0;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 }
 
@@ -4262,6 +4266,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 		wc.height = h;
 		wc.border_width = 0;
 	}
+	// fprintf(stderr, "resizeclient: %s, border_width=%d, height=%d, h=%d\n", c->name, wc.border_width, wc.height, h);
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
 	XSync(dpy, False);
