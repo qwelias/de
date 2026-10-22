@@ -441,7 +441,6 @@ static int streqeq(const char* a, const char* b);
 
 static void tile(Monitor *m);
 static void monocle(Monitor *m);
-static void gaplessgrid(Monitor *m);
 static void shifttag(const Arg *arg);
 static void shiftview(const Arg *arg);
 static void swaplayout(const Arg *arg);
@@ -457,11 +456,6 @@ static const int bartextvoffset = 0;
 static const unsigned int barhextra      = 10;   /* extra bar height to font height */
 static const unsigned int borderpx       = 1;   /* border pixel of windows */
 static const unsigned int snap           = 32;  /* snap pixel */
-static const unsigned int gappih         = 35;  /* height inner gap between windows */
-static const unsigned int gappiw         = 35;  /* width inner gap between windows */
-static const unsigned int gappow         = 35;  /* width outer gap between windows and screen edge */
-static const unsigned int gapptop         = 35;  /* top outer gap between windows and screen edge */
-static const unsigned int gappbot         = 35;  /* bot outer gap between windows and screen edge */
 static const int showbar                 = 1;   /* 0 means no bar */
 static const int topbar                  = 1;   /* 0 means bottom bar */
 static int floatposgrid_x                = 5;  /* float grid columns */
@@ -602,13 +596,11 @@ static const char *switchsink[]  = { "switch_sink.sh", NULL };
 static const char *suspend[]  = { "systemctl", "suspend", NULL };
 static const char *clicks[]  = { "clicks.sh", NULL };
 
-static const Layout speciallt = { ": : :",      gaplessgrid };
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[ ]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[    ]",      monocle },
-	speciallt,
 };
 static const Layout *layouts_swap[] = { &layouts[2], &layouts[0] };
 
@@ -637,7 +629,6 @@ static const BarRule barrules[] = {
 };
 
 #define TAGKEYS(KEY,TAG) \
-	{ KeyPress,    0,                              KEY,   &speciallt,   view,           {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask,                       KEY,   NULL,          view,           {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask|ControlMask,           KEY,   NULL,          toggleview,     {.ui = 1 << TAG} }, \
 	{ KeyPress,    Mod4Mask|ShiftMask,             KEY,   NULL,          tag,            {.ui = 1 << TAG} }, \
@@ -668,17 +659,12 @@ static const Key keys[] = {
 	{ KeyPress,    Mod4Mask,                       XK_b,                       NULL,         togglebar,              {0} },
 	{ KeyPress,    Mod4Mask,                       XK_d,                       NULL,         focusstack,             {.i = +1 } },
 	{ KeyPress,    Mod4Mask,                       XK_a,                       NULL,         focusstack,             {.i = -1 } },
-	{ KeyPress,    0,                              XK_d,                       &speciallt,  focusstack,             {.i = +1 } },
-	{ KeyPress,    0,                              XK_a,                       &speciallt,  focusstack,             {.i = -1 } },
 	{ KeyPress,    Mod4Mask,                       XK_Tab,                     NULL,         zoom,                   {0} },
-	{ KeyPress,    0,                              XK_Tab,                     &speciallt,  zoom,                   {0} },
 	// nav tags
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_q,                       NULL,         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_e,                       NULL,         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
 	{ KeyPress,    Mod4Mask,                       XK_q,                       NULL,         shiftview,              { .i = -1 } },
 	{ KeyPress,    Mod4Mask,                       XK_e,                       NULL,         shiftview,              { .i = +1 } },
-	{ KeyPress,    0,                              XK_q,                       &speciallt,   shiftview,              { .i = -1 } },
-	{ KeyPress,    0,                              XK_e,                       &speciallt,   shiftview,              { .i = +1 } },
 	TAGKEYS(                        XK_1,                                  0)
 	TAGKEYS(                        XK_2,                                  1)
 	TAGKEYS(                        XK_3,                                  2)
@@ -686,11 +672,9 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_5,                                  4)
 	// kills
 	{ KeyPress,    Mod4Mask,                       XK_c,                       NULL,         killclient,             {0} },
-	{ KeyPress,    0,                              XK_c,                       &speciallt,  killclient,             {0} },
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_c,                       NULL,         quit,                   {0} },
 	// layouts
-	{ KeyPress,    Mod4Mask,                       XK_x,                       NULL,         swaplayout,             { .v = &layouts_swap } },
-	{ KeyRelease,  0,                              XK_Super_L,                 NULL,         setlayout,              { .v = &speciallt } },
+	{ KeyRelease,  0,                              XK_Super_L,                 NULL,         swaplayout,             { .v = &layouts_swap } },
 	// mons
 	{ KeyPress,    Mod4Mask,                       XK_comma,                   NULL,         focusmon,               {.i = -1 } },
 	{ KeyPress,    Mod4Mask,                       XK_period,                  NULL,         focusmon,               {.i = +1 } },
@@ -708,7 +692,7 @@ static const Button buttons[] = {
 	/* click                event mask           button         layout           function        argument */
 	{ ClkLtSymbol,          0,                     Button4,       NULL,            focusstack,     {.i = -1 } },
 	{ ClkLtSymbol,          0,                     Button5,       NULL,            focusstack,     {.i = +1 } },
-	{ ClkLtSymbol,          0,                     Button1,       NULL,            setlayout,      {.v = &speciallt } },
+	{ ClkLtSymbol,          0,                     Button1,       NULL,            swaplayout,     {.v = &layouts_swap } },
 	{ ClkLtSymbol,          0,                     Button3,       NULL,            swaplayout,     {.v = &layouts_swap } },
 	{ ClkWinTitle,          0,                     Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkWinTitle,          0,                     Button2,       NULL,            killclient,     {0} },
@@ -719,9 +703,6 @@ static const Button buttons[] = {
 	{ ClkClientWin,         Mod4Mask,              Button1,       NULL,            moveorplace,    {.i = 1} },
 	{ ClkClientWin,         Mod4Mask,              Button2,       NULL,            killclient,     {0} },
 	{ ClkClientWin,         Mod4Mask,              Button3,       NULL,            resizemouse,    {0} },
-	{ ClkClientWin,         0,                     Button1,       &speciallt,     setlayout,       { .v = &layouts[2] } },
-	{ ClkClientWin,         0,                     Button2,       &speciallt,     killclient,      {0} },
-	{ ClkClientWin,         0,                     Button3,       &speciallt,     setlayout,       { .v = &layouts[2] } },
 	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button3,       NULL,            dragcfact,      {0} },
 	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button1,       NULL,            dragmfact,      {0} },
 	{ ClkTagBar,            0,                     Button1,       NULL,            view,           {0} },
@@ -739,7 +720,6 @@ static const char broken[] = "broken";
 static pthread_t barloopth;
 
 static int keypressed;
-static int btnpressed;
 
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
@@ -2285,9 +2265,6 @@ int
 bar_ltsym_draw(Bar *bar, BarArg *a)
 {
 	int lpad = (bar_ltsym_width_fonth*fonth - drw_fontset_getwidth(drw, bar->mon->ltsymbol, 0)) / 2;
-	if (bar->mon->lt[bar->mon->sellt] == &speciallt) {
-		drw_setscheme(drw, scheme[SchemeSel]);
-	}
 	return drw_text(drw, a->x, a->y, a->w, a->h, lpad, bar->mon->ltsymbol, 0, 0);
 }
 
@@ -3021,7 +2998,6 @@ buttonpress(XEvent *e)
 		click = ClkClientWin;
 	}
 
-	btnpressed = ev->button;
 	for (i = 0; i < LENGTH(buttons); i++) {
 		if (
 			click == buttons[i].click &&
@@ -3740,11 +3716,6 @@ grabbuttons(Client *c, int focused)
 		unsigned int i, j;
 		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
-		if (selmon->lt[selmon->sellt] == &speciallt) {
-			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
-				BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
-			return;
-		}
 
 		if (!focused)
 			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
@@ -3770,13 +3741,6 @@ grabkeys(void)
 		KeySym *syms;
 
 		XUngrabKey(dpy, AnyKey, AnyModifier, root);
-		if (selmon->lt[selmon->sellt] == &speciallt) {
-			XGrabKey(dpy, AnyKey,
-				AnyModifier,
-				root, True,
-				GrabModeAsync, GrabModeAsync);
-			return;
-		}
 
 		XDisplayKeycodes(dpy, &start, &end);
 		syms = XGetKeyboardMapping(dpy, start, end - start + 1, &skip);
@@ -3819,7 +3783,6 @@ keypress(XEvent *e)
 	ev = &e->xkey;
 	keysym = XGetKeyboardMapping(dpy, (KeyCode)ev->keycode, 1, &keysyms_return);
 	keypressed = *keysym;
-	btnpressed = 0;
 	for (i = 0; i < LENGTH(keys); i++) {
 		if (*keysym == keys[i].keysym
 				&& keys[i].ev == KeyPress
@@ -3847,10 +3810,8 @@ keyrelease(XEvent *e)
 			*keysym == keys[i].keysym
 			&& keys[i].ev == KeyRelease
 			&& keys[i].func
-			&& !btnpressed
 		) {
 			if (keypressed && keypressed != keys[i].keysym) {
-				if (keypressed == XK_a || keypressed == XK_d) pop(selmon->sel);
 				keypressed = 0;
 			} else {
 				keys[i].func(&(keys[i].arg));
@@ -4582,7 +4543,6 @@ dragmfact(const Arg *arg)
 	if (!m->lt[m->sellt]->arrange                            // floating layout
 		|| (!fixed && m->nmaster && n <= m->nmaster) // no master
 		|| m->lt[m->sellt]->arrange == &monocle
-		|| m->lt[m->sellt]->arrange == &gaplessgrid
 	)
 		return;
 
@@ -5405,59 +5365,6 @@ monocle(Monitor *m)
 		resize(c, m->wx, m->wy, m->ww, m->wh, 0);
 }
 
-void
-gaplessgrid(Monitor *m)
-{
-	unsigned int i, n;
-	int x, y, cols, rows, ch, cw, cn, rn, rrest, crest; // counters
-	int ot = gapptop;
-	int ob = gappbot;
-	int ow = gappow;
-	int ih = gappih;
-	int iw = gappiw;
-
-	Client *c;
-	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-
-	if (n == 0)
-		return;
-
-	/* grid dimensions */
-	for (cols = 0; cols <= n/2; cols++)
-		if (cols*cols >= n)
-			break;
-	if (n == 5) /* set layout against the general calculation: not 1:2:2, but 2:3 */
-		cols = 2;
-	rows = n/cols;
-	cn = rn = 0; // reset column no, row no, client count
-
-	ch = (m->wh - ot - ob - ih * (rows - 1)) / rows;
-	cw = (m->ww - 2*ow - iw * (cols - 1)) / cols;
-	rrest = (m->wh - ot - ob - ih * (rows - 1)) - ch * rows;
-	crest = (m->ww - 2*ow - iw * (cols - 1)) - cw * cols;
-	x = m->wx + ow;
-	y = m->wy + ot;
-
-	for (i = 0, c = nexttiled(m->clients); c; i++, c = nexttiled(c->next)) {
-		if (i/rows + 1 > cols - n%cols) {
-			rows = n/cols + 1;
-			ch = (m->wh - ot - ob - ih * (rows - 1)) / rows;
-			rrest = (m->wh - ot - ob - ih * (rows - 1)) - ch * rows;
-		}
-		resize(c,
-			x,
-			y + rn*(ch + ih) + MIN(rn, rrest),
-			cw + (cn < crest ? 1 : 0),
-			ch + (rn < rrest ? 1 : 0),
-			0);
-		rn++;
-		if (rn >= rows) {
-			rn = 0;
-			x += cw + ih + (cn < crest ? 1 : 0);
-			cn++;
-		}
-	}
-}
 #pragma endregion dwm
 
 #pragma region placemouse
