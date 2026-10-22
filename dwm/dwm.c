@@ -681,9 +681,9 @@ static const Key keys[] = {
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_comma,                   NULL,         tagmon,                 {.i = -1 } },
 	{ KeyPress,    Mod4Mask|ShiftMask,             XK_period,                  NULL,         tagmon,                 {.i = +1 } },
 	// floating
-	{ KeyPress,    Mod4Mask,                       XK_Up,                      NULL,         togglefloating,         {0} },
-	{ KeyPress,    Mod4Mask,                       XK_Left,                    NULL,         floatpos,               {.v = "0% 50% 50% 100%" } },
-	{ KeyPress,    Mod4Mask,                       XK_Right,                   NULL,         floatpos,               {.v = "100% 50% 50% 100%" } },
+	{ KeyPress,    Mod4Mask,                       XK_s,                      NULL,         togglefloating,         {0} },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_a,                      NULL,         floatpos,               {.v = "0% 50% 50% 100%" } },
+	{ KeyPress,    Mod4Mask|ShiftMask,             XK_d,                      NULL,         floatpos,               {.v = "100% 50% 50% 100%" } },
 };
 
 /* button definitions */
