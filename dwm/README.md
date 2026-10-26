@@ -14,5 +14,7 @@ some keys:
 - Sup+LShift+c    = close wm
 - Sup             = switch layout
 - Sup+Tab         = move window to top
+- Sup+R           = dmenu launch
+- Sup+T           = open st
 
 for the rest of keys and mouse buttons see `keys[]` and `buttons[]` in `dwm.c`
