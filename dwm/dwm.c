@@ -3260,8 +3260,10 @@ configurerequest(XEvent *e)
 			}
 			if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
 				configure(c);
-			if (ISVISIBLE(c))
+			if (ISVISIBLE(c)) {
+				// fprintf(stderr, "configurerequest: %s, h=%d, w=%d\n", c->name, c->h, c->w);
 				XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+			}
 		} else
 			configure(c);
 	} else {
@@ -4229,7 +4231,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 		wc.height = h;
 		wc.border_width = 0;
 	}
-	// fprintf(stderr, "resizeclient: %s, border_width=%d, height=%d, h=%d\n", c->name, wc.border_width, wc.height, h);
+	// fprintf(stderr, "resizeclient: %s, border_width=%d, height=%d, h=%d, width=%d, w=%d\n", c->name, wc.border_width, wc.height, h, wc.width, w);
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
 	XSync(dpy, False);
