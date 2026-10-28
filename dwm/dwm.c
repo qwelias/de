@@ -554,6 +554,7 @@ static const Rule rules[] = {
 	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1},
 	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1},
 	{ .monitor = -1, .title = "TIMES", .isfloating = 1},
+	{ .monitor = -1, .title = "NODE_REPL", .isfloating = 1},
 	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1},
 	{ .monitor = -1, .title = "Delta Chat", .isfloating = 1},
 	{ .monitor = -1, .title = "Karing", .isfloating = 1},
@@ -595,6 +596,7 @@ static const char *maimocr[]  = { "maimpick.sh", "ocr", NULL };
 static const char *switchsink[]  = { "switch_sink.sh", NULL };
 static const char *suspend[]  = { "systemctl", "suspend", NULL };
 static const char *clicks[]  = { "clicks.sh", NULL };
+static const char *nodecmd[]  = { "st", "-tNODE_REPL", "-g70x20", "-e", "node", NULL };
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
@@ -646,6 +648,7 @@ static const Key keys[] = {
 	{ KeyPress,    0,                            XF86XK_KbdBrightnessUp,     NULL,         spawn,                  {.v = kbd_up } },
 	{ KeyPress,    0,                            XF86XK_KbdBrightnessDown,   NULL,         spawn,                  {.v = kbd_down } },
 	// spawn
+	{ KeyPress,    Mod4Mask,                       XK_n,                       NULL,         spawn,                  {.v = nodecmd } },
 	{ KeyPress,    Mod4Mask,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
 	{ KeyPress,    Mod4Mask,                       XK_t,                       NULL,         spawn,                  {.v = termcmd } },
 	{ KeyPress,    Mod4Mask,                       XK_z,                       NULL,         spawn,                  {.v = lock } },
