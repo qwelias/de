@@ -223,7 +223,6 @@ typedef struct {
 	unsigned int click;
 	unsigned int mask;
 	unsigned int button;
-	const Layout *layout;
 	void (*func)(const Arg *arg);
 	const Arg arg;
 } Button;
@@ -250,10 +249,8 @@ struct Client {
 };
 
 typedef struct {
-	int ev;
 	unsigned int mod;
 	KeySym keysym;
-	const Layout *layout;
 	void (*func)(const Arg *);
 	const Arg arg;
 } Key;
@@ -381,7 +378,6 @@ static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
 static void keypress(XEvent *e);
-static void keyrelease(XEvent *e);
 static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
@@ -631,99 +627,96 @@ static const BarRule barrules[] = {
 };
 
 #define TAGKEYS(KEY,TAG) \
-	{ KeyPress,    Mod4Mask,                       KEY,   NULL,          view,           {.ui = 1 << TAG} }, \
-	{ KeyPress,    Mod4Mask|ControlMask,           KEY,   NULL,          toggleview,     {.ui = 1 << TAG} }, \
-	{ KeyPress,    Mod4Mask|ShiftMask,             KEY,   NULL,          tag,            {.ui = 1 << TAG} }, \
-	{ KeyPress,    Mod4Mask|ControlMask|ShiftMask, KEY,   NULL,          toggletag,      {.ui = 1 << TAG} },
+	{ Mod4Mask,                         KEY,         view,           {.ui = 1 << TAG} }, \
+	{ Mod4Mask|ControlMask,             KEY,         toggleview,     {.ui = 1 << TAG} }, \
+	{ Mod4Mask|ShiftMask,               KEY,         tag,            {.ui = 1 << TAG} }, \
+	{ Mod4Mask|ControlMask|ShiftMask,   KEY,         toggletag,      {.ui = 1 << TAG} },
 
 static const Key keys[] = {
-	/* event,      modifier                      key                         layout        function                argument */
+	/* modifier                      key                            function                argument */
 	// fn keys
-	{ KeyPress,    0,                            XF86XK_AudioRaiseVolume,    NULL,         bar_audio_change,           {.i = (int)'+' } },
-	{ KeyPress,    0,                            XF86XK_AudioLowerVolume,    NULL,         bar_audio_change,           {.i = (int)'-' } },
-	{ KeyPress,    0,                            XF86XK_AudioMute,           NULL,         bar_audio_toggle_sink,      {0} },
-	{ KeyPress,    0,                            XF86XK_AudioMicMute,        NULL,         bar_audio_toggle_source,    {0} },
-	{ KeyPress,    0,                            XF86XK_MonBrightnessUp,     NULL,         spawn,                  {.v = brighter } },
-	{ KeyPress,    0,                            XF86XK_MonBrightnessDown,   NULL,         spawn,                  {.v = dimmer } },
-	{ KeyPress,    0,                            XF86XK_KbdBrightnessUp,     NULL,         spawn,                  {.v = kbd_up } },
-	{ KeyPress,    0,                            XF86XK_KbdBrightnessDown,   NULL,         spawn,                  {.v = kbd_down } },
+	{ 0,                            XF86XK_AudioRaiseVolume,        bar_audio_change,           {.i = (int)'+' } },
+	{ 0,                            XF86XK_AudioLowerVolume,        bar_audio_change,           {.i = (int)'-' } },
+	{ 0,                            XF86XK_AudioMute,               bar_audio_toggle_sink,      {0} },
+	{ 0,                            XF86XK_AudioMicMute,            bar_audio_toggle_source,    {0} },
+	{ 0,                            XF86XK_MonBrightnessUp,         spawn,                  {.v = brighter } },
+	{ 0,                            XF86XK_MonBrightnessDown,       spawn,                  {.v = dimmer } },
+	{ 0,                            XF86XK_KbdBrightnessUp,         spawn,                  {.v = kbd_up } },
+	{ 0,                            XF86XK_KbdBrightnessDown,       spawn,                  {.v = kbd_down } },
 	// spawn
-	{ KeyPress,    Mod4Mask,                       XK_n,                       NULL,         spawn,                  {.v = nodecmd } },
-	{ KeyPress,    Mod4Mask,                       XK_r,                       NULL,         spawn,                  {.v = dmenucmd } },
-	{ KeyPress,    Mod4Mask,                       XK_t,                       NULL,         spawn,                  {.v = termcmd } },
-	{ KeyPress,    Mod4Mask,                       XK_z,                       NULL,         spawn,                  {.v = lock } },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_z,                       NULL,         spawn,                  {.v = suspend } },
-	{ KeyPress,    0,                              XK_Print,                   NULL,         spawn,                  {.v = maimss } },
-	{ KeyPress,    ShiftMask,                      XK_Print,                   NULL,         spawn,                  {.v = maimocr } },
-	{ KeyPress,    Mod4Mask,                       XK_p,                       NULL,         spawn,                  {.v = maimss } },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_p,                       NULL,         spawn,                  {.v = maimocr } },
-	{ KeyPress,    ControlMask|Mod1Mask,           XK_x,                       NULL,         spawn,                  {.v = switchsink } },
+	{ Mod4Mask,                       XK_n,                         spawn,                  {.v = nodecmd } },
+	{ Mod4Mask,                       XK_r,                         spawn,                  {.v = dmenucmd } },
+	{ Mod4Mask,                       XK_t,                         spawn,                  {.v = termcmd } },
+	{ Mod4Mask,                       XK_z,                         spawn,                  {.v = lock } },
+	{ Mod4Mask|ShiftMask,             XK_z,                         spawn,                  {.v = suspend } },
+	{ 0,                              XK_Print,                     spawn,                  {.v = maimss } },
+	{ ShiftMask,                      XK_Print,                     spawn,                  {.v = maimocr } },
+	{ Mod4Mask,                       XK_p,                         spawn,                  {.v = maimss } },
+	{ Mod4Mask|ShiftMask,             XK_p,                         spawn,                  {.v = maimocr } },
+	{ ControlMask|Mod1Mask,           XK_x,                         spawn,                  {.v = switchsink } },
 	// nav clients
-	{ KeyPress,    Mod4Mask,                       XK_b,                       NULL,         togglebar,              {0} },
-	{ KeyPress,    Mod4Mask,                       XK_d,                       NULL,         focusstack,             {.i = +1 } },
-	{ KeyPress,    Mod4Mask,                       XK_a,                       NULL,         focusstack,             {.i = -1 } },
-	{ KeyPress,    Mod4Mask,                       XK_Tab,                     NULL,         zoom,                   {0} },
+	{ Mod4Mask,                       XK_b,                         togglebar,              {0} },
+	{ Mod4Mask,                       XK_d,                         focusstack,             {.i = +1 } },
+	{ Mod4Mask,                       XK_a,                         focusstack,             {.i = -1 } },
+	{ Mod4Mask,                       XK_Tab,                       zoom,                   {0} },
 	// nav tags
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_q,                       NULL,         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_e,                       NULL,         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
-	{ KeyPress,    Mod4Mask,                       XK_q,                       NULL,         shiftview,              { .i = -1 } },
-	{ KeyPress,    Mod4Mask,                       XK_e,                       NULL,         shiftview,              { .i = +1 } },
+	{ Mod4Mask|ShiftMask,             XK_q,                         shifttag,               { .i = -1 } }, // note keybinding conflict with focusadjacenttag tagtoleft
+	{ Mod4Mask|ShiftMask,             XK_e,                         shifttag,               { .i = +1 } }, // note keybinding conflict with focusadjacenttag tagtoright
+	{ Mod4Mask,                       XK_q,                         shiftview,              { .i = -1 } },
+	{ Mod4Mask,                       XK_e,                         shiftview,              { .i = +1 } },
 	TAGKEYS(                        XK_1,                                  0)
 	TAGKEYS(                        XK_2,                                  1)
 	TAGKEYS(                        XK_3,                                  2)
 	TAGKEYS(                        XK_4,                                  3)
 	TAGKEYS(                        XK_5,                                  4)
 	// kills
-	{ KeyPress,    Mod4Mask,                       XK_c,                       NULL,         killclient,             {0} },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_c,                       NULL,         quit,                   {0} },
+	{ Mod4Mask,                       XK_c,                         killclient,             {0} },
+	{ Mod4Mask|ShiftMask,             XK_c,                         quit,                   {0} },
 	// layouts
-	{ KeyRelease,  0,                              XK_Super_L,                 NULL,         swaplayout,             { .v = &layouts_swap } },
+	{ Mod4Mask,                       XK_x,                         swaplayout,             { .v = &layouts_swap } },
 	// mons
-	{ KeyPress,    Mod4Mask,                       XK_comma,                   NULL,         focusmon,               {.i = -1 } },
-	{ KeyPress,    Mod4Mask,                       XK_period,                  NULL,         focusmon,               {.i = +1 } },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_comma,                   NULL,         tagmon,                 {.i = -1 } },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_period,                  NULL,         tagmon,                 {.i = +1 } },
+	{ Mod4Mask,                       XK_comma,                     focusmon,               {.i = -1 } },
+	{ Mod4Mask,                       XK_period,                    focusmon,               {.i = +1 } },
+	{ Mod4Mask|ShiftMask,             XK_comma,                     tagmon,                 {.i = -1 } },
+	{ Mod4Mask|ShiftMask,             XK_period,                    tagmon,                 {.i = +1 } },
 	// floating
-	{ KeyPress,    Mod4Mask,                       XK_s,                      NULL,         togglefloating,         {0} },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_a,                      NULL,         floatpos,               {.v = "0% 50% 50% 100%" } },
-	{ KeyPress,    Mod4Mask|ShiftMask,             XK_d,                      NULL,         floatpos,               {.v = "100% 50% 50% 100%" } },
+	{ Mod4Mask,                       XK_s,                         togglefloating,         {0} },
+	{ Mod4Mask|ShiftMask,             XK_a,                         floatpos,               {.v = "0% 50% 50% 100%" } },
+	{ Mod4Mask|ShiftMask,             XK_d,                         floatpos,               {.v = "100% 50% 50% 100%" } },
 };
 
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
-	/* click                event mask           button         layout           function        argument */
-	{ ClkLtSymbol,          0,                     Button4,       NULL,            focusstack,     {.i = -1 } },
-	{ ClkLtSymbol,          0,                     Button5,       NULL,            focusstack,     {.i = +1 } },
-	{ ClkLtSymbol,          0,                     Button1,       NULL,            swaplayout,     {.v = &layouts_swap } },
-	{ ClkLtSymbol,          0,                     Button3,       NULL,            swaplayout,     {.v = &layouts_swap } },
-	{ ClkWinTitle,          0,                     Button1,       NULL,            moveorplace,    {.i = 1} },
-	{ ClkWinTitle,          0,                     Button2,       NULL,            killclient,     {0} },
-	{ ClkWinTitle,          0,                     Button3,       NULL,            resizemouse,    {0} },
-	{ ClkWinTitle,          0,                     Button4,       NULL,            focusstack,     {.i = -1} },
-	{ ClkWinTitle,          0,                     Button5,       NULL,            focusstack,     {.i = +1} },
-	{ ClkClientWin,         Mod4Mask|Mod1Mask,     Button3,       NULL,            spawn,          { .v = clicks } },
-	{ ClkClientWin,         Mod4Mask,              Button1,       NULL,            moveorplace,    {.i = 1} },
-	{ ClkClientWin,         Mod4Mask,              Button2,       NULL,            killclient,     {0} },
-	{ ClkClientWin,         Mod4Mask,              Button3,       NULL,            resizemouse,    {0} },
-	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button3,       NULL,            dragcfact,      {0} },
-	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button1,       NULL,            dragmfact,      {0} },
-	{ ClkTagBar,            0,                     Button1,       NULL,            view,           {0} },
-	{ ClkTagBar,            0,                     Button3,       NULL,            toggleview,     {0} },
-	{ ClkTagBar,            0,                     Button4,       NULL,            shiftview,      { .i = -1 } },
-	{ ClkTagBar,            0,                     Button5,       NULL,            shiftview,      { .i = +1 } },
-	{ ClkTagBar,            ShiftMask,             Button4,       NULL,            shifttag,       { .i = -1 } },
-	{ ClkTagBar,            ShiftMask,             Button5,       NULL,            shifttag,       { .i = +1 } },
-	{ ClkTagBar,            Mod4Mask,              Button1,       NULL,            tag,            {0} },
-	{ ClkTagBar,            Mod4Mask,              Button3,       NULL,            toggletag,      {0} },
+	/* click                event mask           button             function        argument */
+	{ ClkLtSymbol,          0,                     Button4,         focusstack,     {.i = -1 } },
+	{ ClkLtSymbol,          0,                     Button5,         focusstack,     {.i = +1 } },
+	{ ClkLtSymbol,          0,                     Button1,         swaplayout,     {.v = &layouts_swap } },
+	{ ClkLtSymbol,          0,                     Button3,         swaplayout,     {.v = &layouts_swap } },
+	{ ClkWinTitle,          0,                     Button1,         moveorplace,    {.i = 1} },
+	{ ClkWinTitle,          0,                     Button2,         killclient,     {0} },
+	{ ClkWinTitle,          0,                     Button3,         resizemouse,    {0} },
+	{ ClkWinTitle,          0,                     Button4,         focusstack,     {.i = -1} },
+	{ ClkWinTitle,          0,                     Button5,         focusstack,     {.i = +1} },
+	{ ClkClientWin,         Mod4Mask|Mod1Mask,     Button3,         spawn,          { .v = clicks } },
+	{ ClkClientWin,         Mod4Mask,              Button1,         moveorplace,    {.i = 1} },
+	{ ClkClientWin,         Mod4Mask,              Button2,         killclient,     {0} },
+	{ ClkClientWin,         Mod4Mask,              Button3,         resizemouse,    {0} },
+	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button3,         dragcfact,      {0} },
+	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button1,         dragmfact,      {0} },
+	{ ClkTagBar,            0,                     Button1,         view,           {0} },
+	{ ClkTagBar,            0,                     Button3,         toggleview,     {0} },
+	{ ClkTagBar,            0,                     Button4,         shiftview,      { .i = -1 } },
+	{ ClkTagBar,            0,                     Button5,         shiftview,      { .i = +1 } },
+	{ ClkTagBar,            ShiftMask,             Button4,         shifttag,       { .i = -1 } },
+	{ ClkTagBar,            ShiftMask,             Button5,         shifttag,       { .i = +1 } },
+	{ ClkTagBar,            Mod4Mask,              Button1,         tag,            {0} },
+	{ ClkTagBar,            Mod4Mask,              Button3,         toggletag,      {0} },
 };
 
 // dwm
 static const char broken[] = "broken";
 static pthread_t barloopth;
-
-static int keypressed;
-static int btnpressed;
 
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
@@ -2684,7 +2677,6 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[Expose] = expose,
 	[FocusIn] = focusin,
 	[KeyPress] = keypress,
-	[KeyRelease] = keyrelease,
 	[MappingNotify] = mappingnotify,
 	[MapRequest] = maprequest,
 	[MotionNotify] = motionnotify,
@@ -3002,14 +2994,12 @@ buttonpress(XEvent *e)
 		click = ClkClientWin;
 	}
 
-	btnpressed = ev->button;
 	for (i = 0; i < LENGTH(buttons); i++) {
 		if (
 			click == buttons[i].click &&
 			buttons[i].func &&
 			buttons[i].button == ev->button &&
-			CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state) &&
-			(!buttons[i].layout || buttons[i].layout == selmon->lt[selmon->sellt])
+			CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state)
 		) {
 			buttons[i].func(
 				(
@@ -3726,7 +3716,7 @@ grabbuttons(Client *c, int focused)
 			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
 				BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
 		for (i = 0; i < LENGTH(buttons); i++)
-			if (buttons[i].click == ClkClientWin && (!buttons[i].layout || buttons[i].layout == selmon->lt[selmon->sellt]))
+			if (buttons[i].click == ClkClientWin)
 				for (j = 0; j < LENGTH(modifiers); j++)
 					XGrabButton(dpy, buttons[i].button,
 						buttons[i].mask | modifiers[j],
@@ -3754,10 +3744,7 @@ grabkeys(void)
 		for (k = start; k <= end; k++) {
 			for (i = 0; i < LENGTH(keys); i++) {
 				/* skip modifier codes, we do that ourselves */
-				if (
-					keys[i].keysym == syms[(k - start) * skip] &&
-					(!keys[i].layout || keys[i].layout == selmon->lt[selmon->sellt])
-				) {
+				if (keys[i].keysym == syms[(k - start) * skip]) {
 					for (j = 0; j < LENGTH(modifiers); j++)
 						XGrabKey(dpy, k,
 							 keys[i].mod | modifiers[j],
@@ -3787,42 +3774,13 @@ keypress(XEvent *e)
 
 	ev = &e->xkey;
 	keysym = XGetKeyboardMapping(dpy, (KeyCode)ev->keycode, 1, &keysyms_return);
-	keypressed = *keysym;
-	btnpressed = 0;
-	for (i = 0; i < LENGTH(keys); i++) {
-		if (*keysym == keys[i].keysym
-				&& keys[i].ev == KeyPress
-				&& (CLEANMASK(keys[i].mod) == CLEANMASK(ev->state))
-				&& (!keys[i].layout || keys[i].layout == selmon->lt[selmon->sellt])
-				&& keys[i].func) {
-					keys[i].func(&(keys[i].arg));
-				}
-	}
-	XFree(keysym);
-}
-
-void
-keyrelease(XEvent *e)
-{
-	unsigned int i;
-	int keysyms_return;
-	KeySym* keysym;
-	XKeyEvent *ev;
-
-	ev = &e->xkey;
-	keysym = XGetKeyboardMapping(dpy, (KeyCode)ev->keycode, 1, &keysyms_return);
 	for (i = 0; i < LENGTH(keys); i++) {
 		if (
 			*keysym == keys[i].keysym
-			&& keys[i].ev == KeyRelease
+			&& (CLEANMASK(keys[i].mod) == CLEANMASK(ev->state))
 			&& keys[i].func
-			&& !btnpressed
 		) {
-			if (keypressed && keypressed != keys[i].keysym) {
-				keypressed = 0;
-			} else {
-				keys[i].func(&(keys[i].arg));
-			}
+			keys[i].func(&(keys[i].arg));
 		}
 	}
 	XFree(keysym);
