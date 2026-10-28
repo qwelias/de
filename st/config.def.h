@@ -7,7 +7,7 @@
  */
 static char *font = "Liberation Mono:pixelsize=12:antialias=true:autohint=true";
 
-static int borderpx = 2;
+static int paddingpx = 2;
 
 /*
  * What program is execed by st depends of these precedence rules:
@@ -189,10 +189,10 @@ static uint forcemousemod = ShiftMask;
 static MouseShortcut mshortcuts[] = {
 	/* mask                 button   function        argument       release  screen */
 	{ XK_ANY_MOD,           Button2, selpaste,       {.i = 0},      1 },
-	{ ShiftMask,            Button4, kscrollup,      {.i = 1},      0, S_PRI},
-	{ ShiftMask,            Button5, kscrolldown,    {.i = 1},      0, S_PRI},
-	{ XK_ANY_MOD,           Button4, kscrollup,      {.i = 1},      0, S_PRI },
-	{ XK_ANY_MOD,           Button5, kscrolldown,    {.i = 1},      0, S_PRI },
+	{ ShiftMask,            Button4, kscrollup,      {.i = 3},      0, S_PRI},
+	{ ShiftMask,            Button5, kscrolldown,    {.i = 3},      0, S_PRI},
+	{ XK_ANY_MOD,           Button4, kscrollup,      {.i = 3},      0, S_PRI },
+	{ XK_ANY_MOD,           Button5, kscrolldown,    {.i = 3},      0, S_PRI },
 	{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"}, 0, S_ALT },
 	{ XK_ANY_MOD,           Button5, ttysend,        {.s = "\005"}, 0, S_ALT },
 };
