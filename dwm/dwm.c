@@ -466,7 +466,7 @@ static char c000000[]                    = "#000000"; // placeholder value
 static char normfgcolor[]                = "#f8f8f2";
 static char normbgcolor[]                = "#272822";
 static char normbordercolor[]            = "#1e201a";
-static char normfloatcolor[]             = "#1e201a";
+static char normfloatcolor[]             = "#6e7066";
 
 static char selfgcolor[]                 = "#1d1e19";
 static char selbgcolor[]                 = "#e6db74";
@@ -547,17 +547,18 @@ static const Rule rules[] = {
 	 *	WM_WINDOW_ROLE(STRING) = role
 	 *	_NET_WM_WINDOW_TYPE(ATOM) = wintype
 	 */
-	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1},
-	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1},
-	{ .monitor = -1, .title = "TIMES", .isfloating = 1},
-	{ .monitor = -1, .title = "NODE_REPL", .isfloating = 1},
-	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1},
-	{ .monitor = -1, .title = "Delta Chat", .isfloating = 1},
-	{ .monitor = -1, .title = "Karing", .isfloating = 1},
-	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1},
-	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1},
-	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_TOOLBAR", .isfloating = 1},
-	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_SPLASH", .isfloating = 1}
+	{ .monitor = -1, .title = "DevTools", .isfloating = 1 },
+	{ .monitor = -1, .title = "WIREMIX", .isfloating = 1 },
+	{ .monitor = -1, .title = "CALENDAR", .isfloating = 1 },
+	{ .monitor = -1, .title = "TIMES", .isfloating = 1 },
+	{ .monitor = -1, .title = "NODE_REPL", .isfloating = 1 },
+	{ .monitor = -1, .title = "AmneziaVPN", .isfloating = 1 },
+	{ .monitor = -1, .title = "Delta Chat", .isfloating = 1 },
+	{ .monitor = -1, .title = "Karing", .isfloating = 1 },
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_DIALOG", .isfloating = 1 },
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_UTILITY", .isfloating = 1 },
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_TOOLBAR", .isfloating = 1 },
+	{ .monitor = -1, .wintype = "_NET_WM_WINDOW_TYPE_SPLASH", .isfloating = 1 }
 };
 
 /* layout(s) */
@@ -681,6 +682,7 @@ static const Key keys[] = {
 	{ Mod4Mask|ShiftMask,             XK_period,                    tagmon,                 {.i = +1 } },
 	// floating
 	{ Mod4Mask,                       XK_s,                         togglefloating,         {0} },
+	{ Mod4Mask|ShiftMask,             XK_s,                         togglefloating,         {0} },
 	{ Mod4Mask|ShiftMask,             XK_a,                         floatpos,               {.v = "0% 50% 50% 100%" } },
 	{ Mod4Mask|ShiftMask,             XK_d,                         floatpos,               {.v = "100% 50% 50% 100%" } },
 };
@@ -3607,19 +3609,21 @@ focusstack(const Arg *arg)
 {
 	Client *c = NULL, *i;
 
+	// fprintf(stderr, "focusstack: i=%d\n", arg->i);
+
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
 		return;
 	if (arg->i > 0) {
-		for (c = selmon->sel->next; c && (!ISVISIBLE(c) || c->isfloating); c = c->next);
+		for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
 		if (!c)
-			for (c = selmon->clients; c && (!ISVISIBLE(c) || c->isfloating); c = c->next);
+			for (c = selmon->clients; c && !ISVISIBLE(c); c = c->next);
 	} else {
 		for (i = selmon->clients; i != selmon->sel; i = i->next)
-			if (ISVISIBLE(i) && !i->isfloating)
+			if (ISVISIBLE(i))
 				c = i;
 		if (!c)
 			for (; i; i = i->next)
-				if (ISVISIBLE(i) && !i->isfloating)
+				if (ISVISIBLE(i))
 					c = i;
 	}
 	if (c) {
