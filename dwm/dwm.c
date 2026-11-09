@@ -231,7 +231,6 @@ typedef struct Client Client;
 struct Client {
 	char name[256];
 	float mina, maxa;
-	float cfact;
 	int x, y, w, h;
 	unsigned int idx;
 	int oldx, oldy, oldw, oldh;
@@ -394,7 +393,7 @@ static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizerequest(XEvent *e);
 static void resizemouse(const Arg *arg);
-static void restack(Monitor *m, int simple);
+static void restack(Monitor *m);
 static void run(void);
 static void scan(void);
 static int sendevent(Window w, Atom proto, int m, long d0, long d1, long d2, long d3, long d4);
@@ -443,7 +442,6 @@ static void swaplayout(const Arg *arg);
 static void floatpos(const Arg *arg);
 static void moveorplace(const Arg *arg);
 static void dragmfact(const Arg *arg);
-static void dragcfact(const Arg *arg);
 #pragma endregion headers
 
 #pragma region vars
@@ -568,7 +566,6 @@ static const int resizehints = 0;    /* 1 means respect size hints in tiled resi
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 static const int refreshrate_resize = 12;  /* refresh rate (per second) for client resize */
 static const int refreshrate_dragmfact = 12; /* refresh rate (per second) for dragmfact */
-static const int refreshrate_dragcfact = 12; /* refresh rate (per second) for dragcfact */
 
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = {
@@ -704,7 +701,6 @@ static const Button buttons[] = {
 	{ ClkClientWin,         Mod4Mask,              Button1,         moveorplace,    {.i = 1} },
 	{ ClkClientWin,         Mod4Mask,              Button2,         killclient,     {0} },
 	{ ClkClientWin,         Mod4Mask,              Button3,         resizemouse,    {0} },
-	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button3,         dragcfact,      {0} },
 	{ ClkClientWin,         Mod4Mask|ShiftMask,    Button1,         dragmfact,      {0} },
 	{ ClkTagBar,            0,                     Button1,         view,           {0} },
 	{ ClkTagBar,            0,                     Button3,         toggleview,     {0} },
@@ -1190,7 +1186,6 @@ drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h)
 		return;
 
 	XCopyArea(drw->dpy, drw->drawable, win, drw->gc, x, y, w, h, x, y);
-	XSync(drw->dpy, False);
 }
 
 Cur *
@@ -1782,6 +1777,7 @@ bar_systray_draw(Bar *bar, BarArg *a)
 		XSetSelectionOwner(dpy, netatom[NetSystemTray], systray->win, CurrentTime);
 		if (XGetSelectionOwner(dpy, netatom[NetSystemTray]) == systray->win) {
 			sendevent(root, xatom[Manager], StructureNotifyMask, CurrentTime, netatom[NetSystemTray], systray->win, 0, 0);
+			fprintf(stderr, "bar_systray_draw: XSync\n");
 			XSync(dpy, False);
 		} else {
 			fprintf(stderr, "dwm: unable to obtain system tray.\n");
@@ -2231,6 +2227,7 @@ loop_triggerstatusbar(void)
 	ev.xclient.format = 32;
 
 	XSendEvent(dpy, root, False, StructureNotifyMask, &ev);
+	fprintf(stderr, "loop_triggerstatusbar: XSync\n");
 	XSync(dpy, False);
 }
 
@@ -2895,7 +2892,7 @@ arrange(Monitor *m)
 		showhide(m->stack);
 	if (m) {
 		arrangemon(m);
-		restack(m, 0);
+		restack(m);
 	} else for (m = mons; m; m = m->next)
 		arrangemon(m);
 }
@@ -2964,6 +2961,9 @@ buttonpress(XEvent *e)
 		unfocus(selmon->sel, 1, NULL);
 		selmon = m;
 		focus(NULL);
+		drawbars();
+		fprintf(stderr, "buttonpress: XSync\n");
+		XSync(drw->dpy, False);
 	}
 
 	for (bar = selmon->bar; bar; bar = bar->next) {
@@ -2991,7 +2991,7 @@ buttonpress(XEvent *e)
 
 	if (click == ClkRootWin && (c = wintoclient(ev->window))) {
 		focus(c);
-		restack(selmon, 1);
+		restack(selmon);
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		click = ClkClientWin;
 	}
@@ -3098,6 +3098,8 @@ clientmessage(XEvent *e)
 
 	if (cme->message_type == wmatom[WMStatusRedraw]) {
 		drawbars();
+		fprintf(stderr, "clientmessage: XSync 1\n");
+		XSync(drw->dpy, False);
 		return;
 	}
 
@@ -3134,6 +3136,7 @@ clientmessage(XEvent *e)
 			swa.background_pixel = scheme[SchemeNorm][ColBg].pixel;
 			XChangeWindowAttributes(dpy, c->win, CWBackPixel, &swa);
 			sendevent(c->win, xatom[Xembed], StructureNotifyMask, CurrentTime, XEMBED_EMBEDDED_NOTIFY, 0 , systray->win, XEMBED_EMBEDDED_VERSION);
+			fprintf(stderr, "clientmessage: XSync 2\n");
 			XSync(dpy, False);
 			setclientstate(c, NormalState);
 		}
@@ -3207,6 +3210,9 @@ configurenotify(XEvent *e)
 			}
 			arrange(NULL);
 			focus(NULL);
+			drawbars();
+			fprintf(stderr, "togglconfigurenotify: XSync\n");
+			XSync(drw->dpy, False);
 		}
 	}
 }
@@ -3272,6 +3278,7 @@ configurerequest(XEvent *e)
 		wc.stack_mode = ev->detail;
 		XConfigureWindow(dpy, ev->window, ev->value_mask, &wc);
 	}
+	fprintf(stderr, "configurerequest: XSync\n");
 	XSync(dpy, False);
 }
 
@@ -3335,6 +3342,8 @@ destroynotify(XEvent *e)
 	else if (showsystray && (c = wintosystrayicon(ev->window))) {
 		removesystrayicon(c);
 		drawbarwin(systray->bar);
+		fprintf(stderr, "destroynotify: XSync\n");
+		XSync(drw->dpy, False);
 	}
 }
 
@@ -3535,7 +3544,7 @@ enternotify(XEvent *e)
 	} else if (!c || c == selmon->sel)
 		return;
 	focus(c);
-	restack(m, 1);
+	restack(m);
 }
 
 void
@@ -3548,6 +3557,8 @@ expose(XEvent *e)
 	if (ev->count == 0 && (m = wintomon(ev->window))) {
 		drawbar(m);
 	}
+	fprintf(stderr, "expose: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -3576,8 +3587,6 @@ focus(Client *c)
 		XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
 	}
 	selmon->sel = c;
-	drawbars();
-
 }
 
 /* there are some broken focus acquiring clients needing extra handling */
@@ -3602,6 +3611,9 @@ focusmon(const Arg *arg)
 	unfocus(selmon->sel, 0, NULL);
 	selmon = m;
 	focus(NULL);
+	drawbars();
+	fprintf(stderr, "focusmon: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -3628,7 +3640,7 @@ focusstack(const Arg *arg)
 	}
 	if (c) {
 		focus(c);
-		restack(selmon, 1);
+		restack(selmon);
 	}
 }
 
@@ -3803,6 +3815,7 @@ killclient(const Arg *arg)
 		XSetErrorHandler(xerrordummy);
 		XSetCloseDownMode(dpy, DestroyAll);
 		XKillClient(dpy, c->win);
+		fprintf(stderr, "killclient: XSync\n");
 		XSync(dpy, False);
 		XSetErrorHandler(xerror);
 		XUngrabServer(dpy);
@@ -3829,7 +3842,6 @@ manage(Window w, XWindowAttributes *wa)
 	c->oldbw = wa->border_width;
 	c->bw = borderpx;
 	// fprintf(stderr, "manage: %s border_width=%d\n", c->name, wa->border_width);
-	c->cfact = 1.0;
 	settings_restored = restoreclientstate(c);
 	updatetitle(c);
 
@@ -3893,10 +3905,13 @@ manage(Window w, XWindowAttributes *wa)
 	arrange(c->mon);
 	XMapWindow(dpy, c->win);
 	focus(NULL);
+	drawbars();
 
 	// TODO this already happens in configure but not handled in configurenotify
 	if (noborder(c)) wc.border_width = 0;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
+	fprintf(stderr, "manage: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -3920,6 +3935,8 @@ maprequest(XEvent *e)
 	if (showsystray && systray && (i = wintosystrayicon(ev->window))) {
 		sendevent(i->win, xatom[Xembed], StructureNotifyMask, CurrentTime, XEMBED_WINDOW_ACTIVATE, 0, systray->win, XEMBED_EMBEDDED_VERSION);
 		drawbarwin(systray->bar);
+		fprintf(stderr, "maprequest: XSync\n");
+		XSync(drw->dpy, False);
 	}
 
 	if (!XGetWindowAttributes(dpy, ev->window, &wa) || wa.override_redirect)
@@ -3987,6 +4004,9 @@ motionnotify(XEvent *e)
 		unfocus(selmon->sel, 1, NULL);
 		selmon = m;
 		focus(NULL);
+		drawbars();
+		fprintf(stderr, "moutionnotify: XSync\n");
+		XSync(drw->dpy, False);
 	}
 	mon = m;
 }
@@ -4004,7 +4024,7 @@ movemouse(const Arg *arg)
 		return;
 	if (c->isfullscreen) /* no support moving fullscreen windows by mouse */
 		return;
-	restack(selmon, 1);
+	restack(selmon);
 	nx = ocx = c->x;
 	ny = ocy = c->y;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -4050,6 +4070,9 @@ movemouse(const Arg *arg)
 		sendmon(c, m);
 		selmon = m;
 		focus(NULL);
+		drawbars();
+		fprintf(stderr, "movemouse: XSync\n");
+		XSync(drw->dpy, False);
 	}
 	ignoreconfigurerequests = 0;
 
@@ -4112,10 +4135,12 @@ propertynotify(XEvent *e)
 		else
 			updatesystrayiconstate(c, ev);
 		drawbarwin(systray->bar);
-	}
-
-	if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
+		fprintf(stderr, "propertynotify: XSync 1 %d\n", ev->type);
+		XSync(drw->dpy, False);
+	} else if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
 		drawbars();
+		fprintf(stderr, "propertynotify: XSync 2 %d\n", ev->type);
+		XSync(drw->dpy, False);
 	} else if (ev->state == PropertyDelete) {
 		return; /* ignore */
 	} else if ((c = wintoclient(ev->window))) {
@@ -4131,14 +4156,20 @@ propertynotify(XEvent *e)
 			break;
 		case XA_WM_HINTS:
 			updatewmhints(c);
-			if (c->isurgent)
+			if (c->isurgent) {
 				drawbars();
+				fprintf(stderr, "propertynotify: XSync 3 %d\n", ev->type);
+				XSync(drw->dpy, False);
+			}
 			break;
 		}
 		if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
 			updatetitle(c);
-			if (c == c->mon->sel)
+			if (c == c->mon->sel) {
 				drawbar(c->mon);
+				fprintf(stderr, "propertynotify: XSync 4 %d\n", ev->type);
+				XSync(drw->dpy, False);
+			}
 		}
 	}
 }
@@ -4199,6 +4230,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	// fprintf(stderr, "resizeclient: %s, border_width=%d, height=%d, h=%d, width=%d, w=%d\n", c->name, wc.border_width, wc.height, h, wc.width, w);
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
+	fprintf(stderr, "resizeclient: XSync\n");
 	XSync(dpy, False);
 }
 
@@ -4218,7 +4250,7 @@ resizemouse(const Arg *arg)
 		return;
 	if (c->isfullscreen) /* no support resizing fullscreen windows by mouse */
 		return;
-	restack(selmon, 1);
+	restack(selmon);
 	nx = ocx = c->x;
 	ny = ocy = c->y;
 	nh = c->h;
@@ -4270,6 +4302,9 @@ resizemouse(const Arg *arg)
 		sendmon(c, m);
 		selmon = m;
 		focus(NULL);
+		drawbars();
+		fprintf(stderr, "resizemouse: XSync\n");
+		XSync(drw->dpy, False);
 	}
 	ignoreconfigurerequests = 0;
 }
@@ -4279,19 +4314,18 @@ resizemouse(const Arg *arg)
 // for floating just raise
 // full restack is needed only when all windows were affected such as on tag/lt change
 void
-restack(Monitor *m, int simple)
+restack(Monitor *m)
 {
 	// fprintf(stderr, "restack\n");
 	Client *c, *f = NULL;
 	XEvent ev;
 	XWindowChanges wc;
 
-	if (!simple) drawbar(m);
+	drawbar(m);
 	if (!m->sel)
 		return;
 	if (m->sel->isfloating || !m->lt[m->sellt]->arrange) {
 		XRaiseWindow(dpy, m->sel->win);
-		if (simple) return;
 	}
 
 	if (m->lt[m->sellt]->arrange) {
@@ -4309,6 +4343,7 @@ restack(Monitor *m, int simple)
 				wc.sibling = c->win;
 			}
 	}
+	fprintf(stderr, "restack: XSync\n");
 	XSync(dpy, False);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
@@ -4379,6 +4414,9 @@ sendmon(Client *c, Monitor *m)
 		resizeclient(c, m->mx, m->my, m->mw, m->mh);
 	arrange(NULL);
 	focus(NULL);
+	drawbars();
+	fprintf(stderr, "sendmon: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -4487,6 +4525,8 @@ setlayout(const Arg *arg)
 	} else {
 		drawbar(selmon);
 	}
+	fprintf(stderr, "setlayout: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 static void
@@ -4717,6 +4757,9 @@ setup(void)
 
 	grabkeys();
 	focus(NULL);
+	drawbars();
+	fprintf(stderr, "setup: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -4842,7 +4885,10 @@ tag(const Arg *arg)
 		selmon->sel->tags = arg->ui & TAGMASK;
 		arrange(selmon);
 		focus(NULL);
+		drawbars();
 	}
+	fprintf(stderr, "tag: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -4903,7 +4949,10 @@ toggletag(const Arg *arg)
 		selmon->sel->tags = newtags;
 		arrange(selmon);
 		focus(NULL);
+		drawbars();
 	}
+	fprintf(stderr, "toggletag: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -4916,7 +4965,10 @@ toggleview(const Arg *arg)
 
 		arrange(selmon);
 		focus(NULL);
+		drawbars();
 	}
+	fprintf(stderr, "toggleview: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -4955,6 +5007,7 @@ unmanage(Client *c, int destroyed)
 		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
 		if (!HIDDEN(c))
 			setclientstate(c, WithdrawnState);
+		fprintf(stderr, "unmanage: XSync\n");
 		XSync(dpy, False);
 		XSetErrorHandler(xerror);
 		XUngrabServer(dpy);
@@ -4963,7 +5016,10 @@ unmanage(Client *c, int destroyed)
 	free(c);
 	arrange(m);
 	focus(NULL);
+	drawbars();
 	updateclientlist();
+	fprintf(stderr, "unmanage: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 void
@@ -4975,6 +5031,8 @@ resizerequest(XEvent *e)
 	if ((i = wintosystrayicon(ev->window))) {
 		updatesystrayicongeom(i, ev->width, ev->height);
 		drawbarwin(systray->bar);
+		fprintf(stderr, "resizerequest: XSync\n");
+		XSync(drw->dpy, False);
 	}
 }
 
@@ -4996,6 +5054,8 @@ unmapnotify(XEvent *e)
 		XMapRaised(dpy, c->win);
 		removesystrayicon(c);
 		drawbarwin(systray->bar);
+		fprintf(stderr, "unmapnotify: XSync\n");
+		XSync(drw->dpy, False);
 	}
 }
 
@@ -5202,6 +5262,9 @@ view(const Arg *arg)
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
 	arrange(selmon);
 	focus(NULL);
+	drawbars();
+	fprintf(stderr, "view: XSync\n");
+	XSync(drw->dpy, False);
 }
 
 Client *
@@ -5379,7 +5442,7 @@ placemouse(const Arg *arg)
 		return;
 	if (c->isfullscreen) /* no support placing fullscreen windows by mouse */
 		return;
-	restack(selmon, 0);
+	restack(selmon);
 	prevr = c;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 		None, cursor[CurMove]->cursor, CurrentTime) != GrabSuccess)
@@ -5506,100 +5569,6 @@ moveorplace(const Arg *arg) {
 }
 
 #pragma endregion placemouse
-
-#pragma region dragfact
-static void
-setcfact(const Arg *arg)
-{
-	float f;
-	Client *c;
-
-	c = selmon->sel;
-
-	if (!arg || !c || !selmon->lt[selmon->sellt]->arrange)
-		return;
-	if (!arg->f)
-		f = 1.0;
-	else if (arg->f > 4.0) // set fact absolutely
-		f = arg->f - 4.0;
-	else
-		f = arg->f + c->cfact;
-	if (f < 0.25)
-		f = 0.25;
-	else if (f > 4.0)
-		f = 4.0;
-	c->cfact = f;
-	arrange(selmon);
-}
-
-static void
-dragcfact(const Arg *arg)
-{
-	int prev_x, prev_y, dist_x, dist_y;
-	float fact;
-	Client *c;
-	XEvent ev;
-	Time lasttime = 0;
-
-	if (!(c = selmon->sel))
-		return;
-	if (c->isfloating) {
-		resizemouse(arg);
-		return;
-	}
-	if (c->isfullscreen) /* no support resizing fullscreen windows by mouse */
-		return;
-	restack(selmon, 1);
-
-	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-		None, cursor[CurIronCross]->cursor, CurrentTime) != GrabSuccess)
-		return;
-
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w/2, c->h/2);
-
-	prev_x = prev_y = -999999;
-
-	do {
-		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
-		switch(ev.type) {
-		case ConfigureRequest:
-		case Expose:
-		case MapRequest:
-			handler[ev.type](&ev);
-			break;
-		case MotionNotify:
-			if ((ev.xmotion.time - lasttime) <= (1000 / refreshrate_dragcfact))
-				continue;
-			lasttime = ev.xmotion.time;
-			if (prev_x == -999999) {
-				prev_x = ev.xmotion.x_root;
-				prev_y = ev.xmotion.y_root;
-			}
-
-			dist_x = ev.xmotion.x - prev_x;
-			dist_y = ev.xmotion.y - prev_y;
-
-			if (abs(dist_x) > abs(dist_y)) {
-				fact = (float) 4.0 * dist_x / c->mon->ww;
-			} else {
-				fact = (float) -4.0 * dist_y / c->mon->wh;
-			}
-
-			if (fact)
-				setcfact(&((Arg) { .f = fact }));
-
-			prev_x = ev.xmotion.x;
-			prev_y = ev.xmotion.y;
-			break;
-		}
-	} while (ev.type != ButtonRelease);
-
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w/2, c->h/2);
-
-	XUngrabPointer(dpy, CurrentTime);
-	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
-}
-#pragma endregion dragfact
 
 int
 main(int argc, char *argv[])
