@@ -2193,7 +2193,7 @@ static const BarUpdateSet barupdates[] = {
 	{ 3, bar_util_update, NULL, "system_stats_update" },
 	{ 3, bar_time_update, NULL, "bar_time_update" },
 	{ 3, bar_bat_update, &bat_dirty, "bar_bat_update" },
-	{ 10, bar_audio_update, &audio_dirty, "bar_audio_update" },
+	{ 9, bar_audio_update, &audio_dirty, "bar_audio_update" },
 };
 
 static int
@@ -2216,21 +2216,6 @@ loop_runupdates(int force)
 	return redraw;
 }
 
-void
-loop_triggerstatusbar(void)
-{
-	XEvent ev;
-	memset(&ev, 0, sizeof(ev));
-	ev.type = ClientMessage;
-	ev.xclient.window = root;
-	ev.xclient.message_type = wmatom[WMStatusRedraw];
-	ev.xclient.format = 32;
-
-	XSendEvent(dpy, root, False, StructureNotifyMask, &ev);
-	fprintf(stderr, "loop_triggerstatusbar: XSync\n");
-	XSync(dpy, False);
-}
-
 void *
 loop_init(void *arg)
 {
@@ -2241,7 +2226,9 @@ loop_init(void *arg)
 		sleepcounter++;
 
 		if (loop_runupdates(0)) {
-			loop_triggerstatusbar();
+			drawbars();
+			fprintf(stderr, "loop_init: XSync\n");
+			XSync(dpy, False);
 		}
 	}
 	return NULL;
@@ -4147,8 +4134,8 @@ propertynotify(XEvent *e)
 		else
 			updatesystrayiconstate(c, ev);
 		drawbarwin(systray->bar);
-		fprintf(stderr, "propertynotify: XSync 1 %d\n", ev->type);
-		XSync(drw->dpy, False);
+		// these very often happen in background and should not cause issues, so just Flush
+		XFlush(drw->dpy);
 	} else if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
 		drawbars();
 		fprintf(stderr, "propertynotify: XSync 2 %d\n", ev->type);
@@ -4531,8 +4518,7 @@ setlayout(const Arg *arg)
 	grabkeys();
 	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->ltsymbol);
 	if (selmon->sel) {
-		pop(selmon->sel);
-		// arrange(selmon->sel->mon);
+		arrange(selmon->sel->mon);
 	} else {
 		drawbar(selmon);
 	}
