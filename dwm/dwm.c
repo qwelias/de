@@ -2992,6 +2992,8 @@ buttonpress(XEvent *e)
 	if (click == ClkRootWin && (c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
+		fprintf(stderr, "buttonpress: XSync\n");
+		XSync(dpy, False);
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		click = ClkClientWin;
 	}
@@ -3152,6 +3154,8 @@ clientmessage(XEvent *e)
 				|| (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
 				&& !c->isfullscreen
 			)));
+			fprintf(stderr, "clientmessage: XSync 3\n");
+			XSync(dpy, False);
 		}
 	} else if (cme->message_type == netatom[NetActiveWindow]) {
 		if (c != selmon->sel && !c->isurgent)
@@ -3545,6 +3549,8 @@ enternotify(XEvent *e)
 		return;
 	focus(c);
 	restack(m);
+	fprintf(stderr, "enternoify: XSync\n");
+	XSync(dpy, False);
 }
 
 void
@@ -3641,6 +3647,8 @@ focusstack(const Arg *arg)
 	if (c) {
 		focus(c);
 		restack(selmon);
+		fprintf(stderr, "focusstack: XSync\n");
+		XSync(dpy, False);
 	}
 }
 
@@ -3778,6 +3786,8 @@ incnmaster(const Arg *arg)
 {
 	selmon->nmaster = MAX(selmon->nmaster + arg->i, 0);
 	arrange(selmon);
+	fprintf(stderr, "incnmaster: XSync\n");
+	XSync(dpy, False);
 }
 
 void
@@ -4025,6 +4035,8 @@ movemouse(const Arg *arg)
 	if (c->isfullscreen) /* no support moving fullscreen windows by mouse */
 		return;
 	restack(selmon);
+	fprintf(stderr, "movemouse: XSync\n");
+	XSync(dpy, False);
 	nx = ocx = c->x;
 	ny = ocy = c->y;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -4147,9 +4159,14 @@ propertynotify(XEvent *e)
 		switch(ev->atom) {
 		default: break;
 		case XA_WM_TRANSIENT_FOR:
-			if (!c->isfloating && (XGetTransientForHint(dpy, c->win, &trans)) &&
-				(c->isfloating = (wintoclient(trans)) != NULL))
+			if (
+				!c->isfloating && (XGetTransientForHint(dpy, c->win, &trans))
+				&& (c->isfloating = (wintoclient(trans)) != NULL)
+			) {
 				arrange(c->mon);
+				fprintf(stderr, "propertynotify: XSync 3 %d\n", ev->type);
+				XSync(dpy, False);
+			}
 			break;
 		case XA_WM_NORMAL_HINTS:
 			c->hintsvalid = 0;
@@ -4251,6 +4268,8 @@ resizemouse(const Arg *arg)
 	if (c->isfullscreen) /* no support resizing fullscreen windows by mouse */
 		return;
 	restack(selmon);
+	fprintf(stderr, "resizemouse: XSync\n");
+	XSync(dpy, False);
 	nx = ocx = c->x;
 	ny = ocy = c->y;
 	nh = c->h;
@@ -4309,10 +4328,6 @@ resizemouse(const Arg *arg)
 	ignoreconfigurerequests = 0;
 }
 
-// TODO simplify and move out drawbar
-// for tiling windows it should be enough to put the selected under the barwin
-// for floating just raise
-// full restack is needed only when all windows were affected such as on tag/lt change
 void
 restack(Monitor *m)
 {
@@ -4343,8 +4358,6 @@ restack(Monitor *m)
 				wc.sibling = c->win;
 			}
 	}
-	fprintf(stderr, "restack: XSync\n");
-	XSync(dpy, False);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
 
@@ -4415,8 +4428,6 @@ sendmon(Client *c, Monitor *m)
 	arrange(NULL);
 	focus(NULL);
 	drawbars();
-	fprintf(stderr, "sendmon: XSync\n");
-	XSync(drw->dpy, False);
 }
 
 void
@@ -4649,6 +4660,8 @@ setmfact(const Arg *arg)
 		return;
 	selmon->mfact = f;
 	arrange(selmon);
+	fprintf(stderr, "setmfact: XSync\n");
+	XSync(dpy, False);
 }
 
 void
@@ -4900,6 +4913,8 @@ tagmon(const Arg *arg)
 		return;
 	dest = dirtomon(arg->i);
 	sendmon(c, dest);
+	fprintf(stderr, "tagmon: XSync\n");
+	XSync(dpy, False);
 }
 
 void
@@ -4913,6 +4928,8 @@ togglebar(const Arg *arg)
 	if (!selmon->showbar && systray)
 		XMoveWindow(dpy, systray->win, -32000, -32000);
 	arrange(selmon);
+	fprintf(stderr, "togglebar: XSync\n");
+	XSync(dpy, False);
 }
 
 void
@@ -4935,6 +4952,8 @@ togglefloating(const Arg *arg)
 		resize(c, c->x, c->y, c->w, c->h, 0);
 	}
 	arrange(c->mon);
+	fprintf(stderr, "togglefloating: XSync\n");
+	XSync(dpy, False);
 }
 
 void
@@ -5346,6 +5365,8 @@ zoom(const Arg *arg)
 
 	// if (c == nexttiled(selmon->clients) && !(c = nexttiled(c->next))) return;
 	pop(c);
+	fprintf(stderr, "zoom: XSync\n");
+	XSync(dpy, False);
 }
 
 void
@@ -5443,6 +5464,8 @@ placemouse(const Arg *arg)
 	if (c->isfullscreen) /* no support placing fullscreen windows by mouse */
 		return;
 	restack(selmon);
+	fprintf(stderr, "placemouse: XSync\n");
+	XSync(dpy, False);
 	prevr = c;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 		None, cursor[CurMove]->cursor, CurrentTime) != GrabSuccess)
@@ -5509,6 +5532,8 @@ placemouse(const Arg *arg)
 				if (c->mon != r->mon) {
 					arrangemon(c->mon);
 					c->tags = r->mon->tagset[r->mon->seltags];
+					fprintf(stderr, "placemouse: XSync\n");
+					XSync(dpy, False);
 				}
 
 				c->mon = r->mon;
@@ -5529,6 +5554,8 @@ placemouse(const Arg *arg)
 
 				attachstack(c);
 				arrangemon(r->mon);
+				fprintf(stderr, "placemouse: XSync\n");
+				XSync(dpy, False);
 				prevr = r;
 				prevattachmode = attachmode;
 			}
@@ -5558,6 +5585,8 @@ placemouse(const Arg *arg)
 	if (!lasttime) {
 		togglefloating(NULL);
 	}
+	fprintf(stderr, "placemouse: XSync\n");
+	XSync(dpy, False);
 }
 
 static void
