@@ -567,7 +567,7 @@ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen win
 static const int refreshrate_resize = 12;  /* refresh rate (per second) for client resize */
 static const int refreshrate_dragmfact = 12; /* refresh rate (per second) for dragmfact */
 
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
+static char dmenumon[8]; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = {
 	"dmenu_run",
 	"-m", dmenumon,
@@ -4806,9 +4806,9 @@ spawn(const Arg *arg)
 	struct sigaction sa;
 	pid_t pid;
 
-	if (arg->v == dmenucmd)
-		dmenumon[0] = '0' + selmon->num;
-
+	if (arg->v == dmenucmd) {
+		snprintf(dmenumon, sizeof(dmenumon), "%d", selmon->num);
+	}
 	if ((pid = fork()) == -1) {
 		fprintf(stderr, "dwm: fork failed: %s\n", strerror(errno));
 		return;
