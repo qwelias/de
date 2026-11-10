@@ -3551,9 +3551,9 @@ expose(XEvent *e)
 
 	if (ev->count == 0 && (m = wintomon(ev->window))) {
 		drawbar(m);
+		fprintf(stderr, "expose: XSync\n");
+		XSync(drw->dpy, False);
 	}
-	fprintf(stderr, "expose: XSync\n");
-	XSync(drw->dpy, False);
 }
 
 void
